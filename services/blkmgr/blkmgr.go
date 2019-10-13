@@ -5,18 +5,18 @@ package blkmgr
 import (
 	"container/list"
 	"fmt"
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
+	"github.com/Qitmeer/qitmeer-lib/params/dcr/types"
 	"github.com/Qitmeer/qitmeer/config"
+	"github.com/Qitmeer/qitmeer/core/blockchain"
 	"github.com/Qitmeer/qitmeer/core/blockdag"
 	"github.com/Qitmeer/qitmeer/core/message"
-	"github.com/Qitmeer/qitmeer/core/types"
-	"github.com/Qitmeer/qitmeer/engine/txscript"
-	"github.com/Qitmeer/qitmeer/params"
-	"github.com/Qitmeer/qitmeer/params/dcr/types"
-	"github.com/Qitmeer/qitmeer/core/blockchain"
 	"github.com/Qitmeer/qitmeer/database"
+	"github.com/Qitmeer/qitmeer/engine/txscript"
 	"github.com/Qitmeer/qitmeer/node/notify"
 	"github.com/Qitmeer/qitmeer/p2p/peer"
+	"github.com/Qitmeer/qitmeer/params"
 	"github.com/Qitmeer/qitmeer/services/common/progresslog"
 	"sync"
 	"sync/atomic"
@@ -36,15 +36,15 @@ const (
 // BlockManager provides a concurrency safe block manager for handling all
 // incoming blocks.
 type BlockManager struct {
-	started             int32
-	shutdown            int32
+	started  int32
+	shutdown int32
 
-	config              *config.Config
-	params              *params.Params
+	config *config.Config
+	params *params.Params
 
-	notify              notify.Notify
+	notify notify.Notify
 
-	chain               *blockchain.BlockChain
+	chain *blockchain.BlockChain
 
 	rejectedTxns        map[hash.Hash]struct{}
 	requestedTxns       map[hash.Hash]struct{}
@@ -53,12 +53,12 @@ type BlockManager struct {
 	requestedEverBlocks map[hash.Hash]uint8
 	progressLogger      *progresslog.BlockProgressLogger
 
-	peers               map[*peer.Peer]*peer.ServerPeer
-	syncPeer            *peer.ServerPeer
-	msgChan             chan interface{}
+	peers    map[*peer.Peer]*peer.ServerPeer
+	syncPeer *peer.ServerPeer
+	msgChan  chan interface{}
 
-	wg                  sync.WaitGroup
-	quit                chan struct{}
+	wg   sync.WaitGroup
+	quit chan struct{}
 
 	// The following fields are used for headers-first mode.
 	headersFirstMode bool
@@ -80,7 +80,7 @@ type BlockManager struct {
 
 // NewBlockManager returns a new block manager.
 // Use Start to begin processing asynchronous block and inv updates.
-func NewBlockManager(ntmgr notify.Notify,indexManager blockchain.IndexManager,db database.DB,
+func NewBlockManager(ntmgr notify.Notify, indexManager blockchain.IndexManager, db database.DB,
 	timeSource blockchain.MedianTimeSource, sigCache *txscript.SigCache,
 	cfg *config.Config, par *params.Params, blockVersion uint32,
 	interrupt <-chan struct{}) (*BlockManager, error) {
@@ -122,7 +122,7 @@ func NewBlockManager(ntmgr notify.Notify,indexManager blockchain.IndexManager,db
 		// Initialize the next checkpoint based on the current height.
 		bm.nextCheckpoint = bm.findNextHeaderCheckpoint(uint64(best.GraphState.GetMainHeight()))
 		if bm.nextCheckpoint != nil {
-			bm.resetHeaderState(&best.Hash,uint64(best.GraphState.GetMainHeight()))
+			bm.resetHeaderState(&best.Hash, uint64(best.GraphState.GetMainHeight()))
 		}
 	} else {
 		log.Info("Checkpoints are disabled")
@@ -193,11 +193,11 @@ func (b *BlockManager) handleNotifyMsg(notification *blockchain.Notification) {
 
 		// Generate the inventory vector and relay it.
 		iv := message.NewInvVect(message.InvTypeBlock, blockHash)
-		log.Trace("relay inv","inv",iv)
+		log.Trace("relay inv", "inv", iv)
 
 		b.notify.RelayInventory(iv, block.Block().Header)
 
-		gsm:=message.NewMsgGraphState(b.chain.BestSnapshot().GraphState)
+		gsm := message.NewMsgGraphState(b.chain.BestSnapshot().GraphState)
 		b.notify.BroadcastMessage(gsm)
 
 	// A block has been connected to the main block chain.
@@ -231,10 +231,10 @@ func (b *BlockManager) handleNotifyMsg(notification *blockchain.Notification) {
 		}
 
 		/*
-		if r := b.server.rpcServer; r != nil {
-			// Notify registered websocket clients of incoming block.
-			r.ntfnMgr.NotifyBlockConnected(block)
-		}
+			if r := b.server.rpcServer; r != nil {
+				// Notify registered websocket clients of incoming block.
+				r.ntfnMgr.NotifyBlockConnected(block)
+			}
 		*/
 
 	// A block has been disconnected from the main block chain.
@@ -262,30 +262,30 @@ func (b *BlockManager) handleNotifyMsg(notification *blockchain.Notification) {
 		}
 
 		/*
-		// Notify registered websocket clients.
-		if r := b.server.rpcServer; r != nil {
-			r.ntfnMgr.NotifyBlockDisconnected(block)
-		}
+			// Notify registered websocket clients.
+			if r := b.server.rpcServer; r != nil {
+				r.ntfnMgr.NotifyBlockDisconnected(block)
+			}
 		*/
 
 	// The blockchain is reorganizing.
 	case blockchain.Reorganization:
 		log.Trace("Chain reorganization notification")
 		/*
-		rd, ok := notification.Data.(*blockchain.ReorganizationNotifyData)
-		if !ok {
-			log.Warn("Chain reorganization notification is malformed")
-			break
-		}
+			rd, ok := notification.Data.(*blockchain.ReorganizationNotifyData)
+			if !ok {
+				log.Warn("Chain reorganization notification is malformed")
+				break
+			}
 
-		// Notify registered websocket clients.
-		if r := b.server.rpcServer; r != nil {
-			r.ntfnMgr.NotifyReorganization(rd)
-		}
+			// Notify registered websocket clients.
+			if r := b.server.rpcServer; r != nil {
+				r.ntfnMgr.NotifyReorganization(rd)
+			}
 
-		// Drop the associated mining template from the old chain, since it
-		// will be no longer valid.
-		b.cachedCurrentTemplate = nil
+			// Drop the associated mining template from the old chain, since it
+			// will be no longer valid.
+			b.cachedCurrentTemplate = nil
 		*/
 	}
 }
@@ -307,7 +307,7 @@ func (b *BlockManager) current() bool {
 	// to we are not current.
 	if b.syncPeer.LastGS().IsExcellent(b.chain.BestSnapshot().GraphState) {
 		log.Trace("comparing the current best vs sync last",
-			"current.best", b.chain.BestSnapshot().GraphState.String(), "sync.last",b.syncPeer.LastGS().String())
+			"current.best", b.chain.BestSnapshot().GraphState.String(), "sync.last", b.syncPeer.LastGS().String())
 		return false
 	}
 
@@ -387,7 +387,7 @@ func (b *BlockManager) fetchHeaderBlocks() {
 		if err != nil {
 			log.Warn("Unexpected failure when checking for "+
 				"existing inventory during header block fetch",
-				"error",err)
+				"error", err)
 			continue
 		}
 		if !haveInv {
@@ -397,7 +397,7 @@ func (b *BlockManager) fetchHeaderBlocks() {
 			err = gdmsg.AddInvVect(iv)
 			if err != nil {
 				log.Warn("Failed to add invvect while fetching block headers",
-					"error",err)
+					"error", err)
 			}
 			numRequested++
 		}
@@ -573,10 +573,10 @@ out:
 				// their old block template to become stale.
 				// TODO, re-impl the client notify by subscript/publish
 				/*
-				rpcServer := b.rpcServer
-				if rpcServer != nil {
-					rpcServer.gbtWorkState.NotifyBlockConnected(msg.block.Hash())
-				}
+					rpcServer := b.rpcServer
+					if rpcServer != nil {
+						rpcServer.gbtWorkState.NotifyBlockConnected(msg.block.Hash())
+					}
 				*/
 
 				msg.reply <- processBlockResponse{
@@ -596,10 +596,10 @@ out:
 				log.Trace("blkmgr msgChan isCurrentMsg", "msg", msg)
 				msg.isCurrentReply <- b.current()
 				/*
-			case pauseMsg:
-				// Wait until the sender unpauses the manager.
-				<-msg.unpause
-			*/
+					case pauseMsg:
+						// Wait until the sender unpauses the manager.
+						<-msg.unpause
+				*/
 			case getCurrentTemplateMsg:
 				log.Trace("blkmgr msgChan getCurrentTemplateMsg", "msg", msg)
 				cur := deepCopyBlockTemplate(b.cachedCurrentTemplate)
@@ -656,7 +656,6 @@ type processBlockMsg struct {
 	flags blockchain.BehaviorFlags
 	reply chan processBlockResponse
 }
-
 
 // ProcessBlock makes use of ProcessBlock on an internal instance of a block
 // chain.  It is funneled through the block manager since blockchain is not safe
@@ -719,6 +718,7 @@ type txMsg struct {
 	tx   *types.Tx
 	peer *peer.ServerPeer
 }
+
 // QueueTx adds the passed transaction message and peer to the block handling
 // queue.
 func (b *BlockManager) QueueTx(tx *types.Tx, sp *peer.ServerPeer) {
@@ -775,7 +775,7 @@ func (b *BlockManager) QueueBlock(block *types.SerializedBlock, sp *peer.ServerP
 		sp.BlockProcessed <- struct{}{}
 		return
 	}
-	log.Trace("send blockMsg to blkmgr msgChan", "block",block, "peer",sp)
+	log.Trace("send blockMsg to blkmgr msgChan", "block", block, "peer", sp)
 	b.msgChan <- &blockMsg{block: block, peer: sp}
 }
 
@@ -821,7 +821,6 @@ func (b *BlockManager) TipGeneration() ([]hash.Hash, error) {
 	return response.hashes, response.err
 }
 
-
 // requestFromPeerMsg is a message type to be sent across the message channel
 // for requesting either blocks or transactions from a given peer. It routes
 // this through the block manager so the block manager doesn't ban the peer
@@ -841,7 +840,7 @@ type requestFromPeerResponse struct {
 // RequestFromPeer allows an outside caller to request blocks or transactions
 // from a peer. The requests are logged in the blockmanager's internal map of
 // requests so they do not later ban the peer for sending the respective data.
-func (b *BlockManager) RequestFromPeer(p *peer.ServerPeer, blocks[]*hash.Hash) error {
+func (b *BlockManager) RequestFromPeer(p *peer.ServerPeer, blocks []*hash.Hash) error {
 	reply := make(chan requestFromPeerResponse)
 	b.msgChan <- requestFromPeerMsg{peer: p, blocks: blocks, reply: reply}
 	response := <-reply
@@ -900,13 +899,13 @@ func (b *BlockManager) SyncPeerID() int32 {
 
 // Selective execution PushGetBlocksMsg to peer
 func (b *BlockManager) PushGetBlocksMsg(peer *peer.ServerPeer) {
-	gs:=b.chain.BestSnapshot().GraphState
-	allOrphan:=b.chain.GetOrphansParents()
+	gs := b.chain.BestSnapshot().GraphState
+	allOrphan := b.chain.GetOrphansParents()
 
-	if b.chain.GetOrphansTotal()>blockchain.MaxOrphanBlocks && len(allOrphan)>0 {
-		peer.PushGetBlocksMsg(gs,allOrphan)
-	}else{
-		peer.PushGetBlocksMsg(gs,nil)
+	if b.chain.GetOrphansTotal() > blockchain.MaxOrphanBlocks && len(allOrphan) > 0 {
+		peer.PushGetBlocksMsg(gs, allOrphan)
+	} else {
+		peer.PushGetBlocksMsg(gs, nil)
 	}
 }
 
@@ -939,7 +938,7 @@ func (b *BlockManager) handleStallSample() {
 	best := b.chain.BestSnapshot()
 	disconnectSyncPeer := b.syncPeer.LastGS().IsExcellent(best.GraphState)
 	if !disconnectSyncPeer && b.syncPeer.LastGS().IsEqual(best.GraphState) {
-		disconnectSyncPeer=true
+		disconnectSyncPeer = true
 	}
 	b.updateSyncPeer(disconnectSyncPeer)
 }

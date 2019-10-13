@@ -6,7 +6,7 @@
 package peer
 
 import (
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
 	"github.com/Qitmeer/qitmeer/core/message"
 )
 
@@ -15,11 +15,10 @@ import (
 type ServerPeer struct {
 	// The following chans are used to sync blockmanager and server.
 	*Peer
-	TxProcessed    chan struct{}
-	BlockProcessed chan struct{}
+	TxProcessed     chan struct{}
+	BlockProcessed  chan struct{}
 	RequestedBlocks map[hash.Hash]struct{}
 	RequestedTxns   map[hash.Hash]struct{}
 	RequestQueue    []*message.InvVect
 	SyncCandidate   bool
 }
-

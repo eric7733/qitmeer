@@ -2,8 +2,8 @@
 package blockchain
 
 import (
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 
 	// currentBlockIndexVersion indicates what the current block index
 	// database version.
-	currentBlockIndexVersion= 1
+	currentBlockIndexVersion = 1
 
 	// currentDatabaseVersion indicates what the current database
 	// version is.
@@ -32,7 +32,6 @@ const (
 	// medianTimeBlocks is the number of previous blocks which should be
 	// used to calculate the median time used to validate block timestamps.
 	medianTimeBlocks = 11
-
 )
 
 const (
@@ -47,7 +46,6 @@ const (
 
 	// MaxCoinbaseScriptLen is the maximum length a coinbase script can be.
 	MaxCoinbaseScriptLen = 100
-
 )
 
 var (
@@ -56,6 +54,3 @@ var (
 	// every time a check is needed.
 	zeroHash = &hash.ZeroHash
 )
-
-
-

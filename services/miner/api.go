@@ -12,12 +12,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/core/json"
-	"github.com/Qitmeer/qitmeer/core/types"
-	"github.com/Qitmeer/qitmeer/params/dcr/types"
-	"github.com/Qitmeer/qitmeer/rpc"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
+	"github.com/Qitmeer/qitmeer-lib/params/dcr/types"
 	"github.com/Qitmeer/qitmeer/core/blockchain"
+	"github.com/Qitmeer/qitmeer/core/json"
+	"github.com/Qitmeer/qitmeer/rpc"
 	"github.com/Qitmeer/qitmeer/services/mining"
 )
 
@@ -49,14 +49,14 @@ func (c *CPUMiner) APIs() []rpc.API {
 }
 
 type PublicMinerAPI struct {
-	miner *CPUMiner
-	gbtWorkState *gbtWorkState
+	miner          *CPUMiner
+	gbtWorkState   *gbtWorkState
 	gbtCoinbaseAux *json.GetBlockTemplateResultAux
 }
 
 func NewPublicMinerAPI(c *CPUMiner) *PublicMinerAPI {
-	pmAPI:=&PublicMinerAPI{miner:c}
-	pmAPI.gbtWorkState=&gbtWorkState{timeSource:c.timeSource}
+	pmAPI := &PublicMinerAPI{miner: c}
+	pmAPI.gbtWorkState = &gbtWorkState{timeSource: c.timeSource}
 
 	pmAPI.gbtCoinbaseAux = &json.GetBlockTemplateResultAux{
 		Flags: hex.EncodeToString(builderScript(txscript.NewScriptBuilder().
@@ -69,10 +69,10 @@ func NewPublicMinerAPI(c *CPUMiner) *PublicMinerAPI {
 func (api *PublicMinerAPI) GetBlockTemplate(capabilities []string) (interface{}, error) {
 	// Set the default mode and override it if supplied.
 	mode := "template"
-	request:=json.TemplateRequest{Mode:mode,Capabilities:capabilities}
+	request := json.TemplateRequest{Mode: mode, Capabilities: capabilities}
 	switch mode {
 	case "template":
-		return handleGetBlockTemplateRequest(api,&request)
+		return handleGetBlockTemplateRequest(api, &request)
 	case "proposal":
 		//TODO LL, will be added
 		//return handleGetBlockTemplateProposal(s, request)
@@ -104,15 +104,15 @@ func (api *PublicMinerAPI) SubmitBlock(hexBlock string) (interface{}, error) {
 
 	// Because it's asynchronous, so you must ensure that all tips are referenced
 	tipsList := api.miner.blockManager.GetChain().GetMiningTips()
-	tips:=blockdag.NewHashSet()
+	tips := blockdag.NewHashSet()
 	tips.AddList(tipsList)
 	parents := blockdag.NewHashSet()
 	parents.AddList(block.Block().Parents)
 	if !parents.IsEqual(tips) {
 		return fmt.Sprintf("The tips of block is expired."), nil
 	}
-	mainParent:=api.miner.blockManager.GetChain().BlockDAG().GetMainParent(parents)
-	block.SetHeight(mainParent.GetHeight()+1)
+	mainParent := api.miner.blockManager.GetChain().BlockDAG().GetMainParent(parents)
+	block.SetHeight(mainParent.GetHeight() + 1)
 	// Process this block using the same rules as blocks coming from other
 	// nodes.  This will in turn relay it to the network like normal.
 	isOrphan, err := api.miner.blockManager.ProcessBlock(block, blockchain.BFNone)
@@ -141,7 +141,7 @@ func (api *PublicMinerAPI) SubmitBlock(hexBlock string) (interface{}, error) {
 	}
 
 	if isOrphan {
-		return fmt.Sprintf("Block submitted via miner is an orphan building "+
+		return fmt.Sprintf("Block submitted via miner is an orphan building " +
 			"on parent"), nil
 	}
 
@@ -152,7 +152,7 @@ func (api *PublicMinerAPI) SubmitBlock(hexBlock string) (interface{}, error) {
 		coinbaseTxGenerated += out.Amount
 	}
 	return fmt.Sprintf("Block submitted accepted  hash %s, height %d, order %s amount %d", block.Hash().String(),
-		 block.Height(),blockdag.GetOrderLogStr(uint(block.Order())), coinbaseTxGenerated), nil
+		block.Height(), blockdag.GetOrderLogStr(uint(block.Order())), coinbaseTxGenerated), nil
 
 }
 
@@ -163,7 +163,7 @@ func (api *PublicMinerAPI) SubmitBlock(hexBlock string) (interface{}, error) {
 // in regards to whether or not it supports creating its own coinbase (the
 // coinbasetxn and coinbasevalue capabilities) and modifies the returned block
 // template accordingly.
-func handleGetBlockTemplateRequest(api *PublicMinerAPI,request *json.TemplateRequest) (interface{}, error) {
+func handleGetBlockTemplateRequest(api *PublicMinerAPI, request *json.TemplateRequest) (interface{}, error) {
 	// Extract the relevant passed capabilities and restrict the result to
 	// either a coinbase value or a coinbase transaction object depending on
 	// the request.  Default to only providing a coinbase value.
@@ -194,7 +194,7 @@ func handleGetBlockTemplateRequest(api *PublicMinerAPI,request *json.TemplateReq
 	}
 
 	// No point in generating or accepting work before the chain is synced.
-	currentOrder := api.miner.blockManager.GetChain().BestSnapshot().GraphState.GetTotal()-1
+	currentOrder := api.miner.blockManager.GetChain().BestSnapshot().GraphState.GetTotal() - 1
 	if currentOrder != 0 && !api.miner.blockManager.IsCurrent() {
 		return nil, rpc.RPCClientInInitialDownloadError("Client in initial download ",
 			"qitmeer is downloading blocks...")
@@ -213,7 +213,7 @@ func handleGetBlockTemplateRequest(api *PublicMinerAPI,request *json.TemplateReq
 	if err := state.updateBlockTemplate(api, useCoinbaseValue); err != nil {
 		return nil, err
 	}
-	return state.blockTemplateResult(api,useCoinbaseValue, nil)
+	return state.blockTemplateResult(api, useCoinbaseValue, nil)
 }
 
 //LL
@@ -222,7 +222,6 @@ func handleGetBlockTemplateRequest(api *PublicMinerAPI,request *json.TemplateReq
 func encodeTemplateID(prevHash hash.Hash, lastGenerated time.Time) string {
 	return fmt.Sprintf("%s-%d", prevHash.String(), lastGenerated.Unix())
 }
-
 
 // gbtWorkState houses state that is used in between multiple RPC invocations to
 // getblocktemplate.
@@ -235,7 +234,6 @@ type gbtWorkState struct {
 	template      *types.BlockTemplate
 	timeSource    blockchain.MedianTimeSource
 }
-
 
 // updateBlockTemplate creates or updates a block template for the work state.
 // A new block template will be generated when the current best block has
@@ -262,7 +260,7 @@ func (state *gbtWorkState) updateBlockTemplate(api *PublicMinerAPI, useCoinbaseV
 	// generated.
 	var targetDifficulty string
 	rand.Seed(time.Now().UnixNano())
-	parentsSet:=blockdag.NewHashSet()
+	parentsSet := blockdag.NewHashSet()
 	parentsSet.AddList(m.blockManager.GetChain().GetMiningTips())
 	template := state.template
 	if template == nil || state.parentsSet == nil ||
@@ -274,7 +272,7 @@ func (state *gbtWorkState) updateBlockTemplate(api *PublicMinerAPI, useCoinbaseV
 		// Reset the previous best hash the block template was generated
 		// against so any errors below cause the next invocation to try
 		// again.
-		state.parentsSet=blockdag.NewHashSet()
+		state.parentsSet = blockdag.NewHashSet()
 
 		// Choose a payment address at random if the caller requests a
 		// full coinbase as opposed to only the pertinent details needed
@@ -292,7 +290,7 @@ func (state *gbtWorkState) updateBlockTemplate(api *PublicMinerAPI, useCoinbaseV
 		// appropriate address(es).
 		template, err := mining.NewBlockTemplate(m.policy, m.params, m.sigCache, m.txSource, m.timeSource, m.blockManager, payToAddr, nil)
 		if err != nil {
-			return rpc.RpcInvalidError("Failed to create new block template: %s",err.Error())
+			return rpc.RpcInvalidError("Failed to create new block template: %s", err.Error())
 		}
 		msgBlock := template.Block
 		targetDifficulty = fmt.Sprintf("%064x",
@@ -325,7 +323,7 @@ func (state *gbtWorkState) updateBlockTemplate(api *PublicMinerAPI, useCoinbaseV
 		// Update the time of the block template to the current time
 		// while accounting for the median time of the past several
 		// blocks per the chain consensus rules.
-		mining.UpdateBlockTime(msgBlock,m.blockManager.GetChain(),m.timeSource,m.params)
+		mining.UpdateBlockTime(msgBlock, m.blockManager.GetChain(), m.timeSource, m.params)
 		msgBlock.Header.Nonce = 0
 
 		log.Debug(fmt.Sprintf("Updated block template (timestamp %v, "+
@@ -336,13 +334,12 @@ func (state *gbtWorkState) updateBlockTemplate(api *PublicMinerAPI, useCoinbaseV
 	return nil
 }
 
-
 // blockTemplateResult returns the current block template associated with the
 // state as a GetBlockTemplateResult that is ready to be encoded to JSON
 // and returned to the caller.
 //
 // This function MUST be called with the state locked.
-func (state *gbtWorkState) blockTemplateResult(api *PublicMinerAPI,useCoinbaseValue bool, submitOld *bool) (*json.GetBlockTemplateResult, error) {
+func (state *gbtWorkState) blockTemplateResult(api *PublicMinerAPI, useCoinbaseValue bool, submitOld *bool) (*json.GetBlockTemplateResult, error) {
 	// Ensure the timestamps are still in valid range for the template.
 	// This should really only ever happen if the local clock is changed
 	// after the template is generated, but it's important to avoid serving
@@ -412,7 +409,6 @@ func (state *gbtWorkState) blockTemplateResult(api *PublicMinerAPI,useCoinbaseVa
 		transactions = append(transactions, resultTx)
 	}
 
-
 	//parents
 	parents := []json.GetBlockTemplateResultPt{}
 	for _, v := range template.Block.Parents {
@@ -479,7 +475,7 @@ func (state *gbtWorkState) blockTemplateResult(api *PublicMinerAPI,useCoinbaseVa
 		txBuf, err := tx.Serialize()
 		if err != nil {
 			context := "Failed to serialize transaction"
-			return nil, rpc.RpcInvalidError("%s %s",err.Error(), context)
+			return nil, rpc.RpcInvalidError("%s %s", err.Error(), context)
 		}
 
 		resultTx := json.GetBlockTemplateResultTx{
@@ -501,7 +497,7 @@ type PrivateMinerAPI struct {
 }
 
 func NewPrivateMinerAPI(c *CPUMiner) *PrivateMinerAPI {
-	pmAPI:=&PrivateMinerAPI{miner:c}
+	pmAPI := &PrivateMinerAPI{miner: c}
 	return pmAPI
 }
 

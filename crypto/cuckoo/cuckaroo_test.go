@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
 	"log"
 	"math/big"
 	"runtime"
@@ -30,7 +30,7 @@ func TestCuckooMining(t *testing.T) {
 	header := "helloworld"
 
 	for nonce = 0; ; nonce++ {
-		headerBytes := []byte(fmt.Sprintf("%s%d",header,nonce))
+		headerBytes := []byte(fmt.Sprintf("%s%d", header, nonce))
 		siphashKey = hash.DoubleHashB(headerBytes)
 		cycleNonces, isFound = c.PoW(siphashKey[:16])
 		if !isFound {
@@ -45,9 +45,9 @@ func TestCuckooMining(t *testing.T) {
 		// The block is solved when the new block hash is less
 		// than the target difficulty.  Yay!
 		if cycleNoncesHashInt.Cmp(targetDifficulty) <= 0 {
-			log.Println(fmt.Sprintf("Current Nonce:%d",nonce))
-			log.Println(fmt.Sprintf("Found %d Cycles Nonces:",ProofSize),cycleNonces)
-			fmt.Println("【Found Hash】",hex.EncodeToString(cycleNoncesHash))
+			log.Println(fmt.Sprintf("Current Nonce:%d", nonce))
+			log.Println(fmt.Sprintf("Found %d Cycles Nonces:", ProofSize), cycleNonces)
+			fmt.Println("【Found Hash】", hex.EncodeToString(cycleNoncesHash))
 			break
 		}
 	}

@@ -7,15 +7,15 @@
 package params
 
 import (
-	"time"
-	"math/big"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
 	"github.com/Qitmeer/qitmeer/common"
-	"github.com/Qitmeer/qitmeer/core/protocol"
+	"math/big"
+	"time"
 )
 
 // testNetPowLimit is the highest proof of work value a block can
 // have for the test network. It is the value 2^232 - 1.
-var	testNetPowLimit = new(big.Int).Sub(new(big.Int).Lsh(common.Big1, 232), common.Big1)
+var testNetPowLimit = new(big.Int).Sub(new(big.Int).Lsh(common.Big1, 232), common.Big1)
 
 // TestNetParams defines the network parameters for the test network.
 var TestNetParams = Params{
@@ -55,13 +55,11 @@ var TestNetParams = Params{
 	BlockTaxProportion:       0,
 
 	// Checkpoints ordered from oldest to newest.
-	Checkpoints: []Checkpoint{
-	},
+	Checkpoints: []Checkpoint{},
 
 	// Consensus rule change deployments.
 	//
-	Deployments: map[uint32][]ConsensusDeployment{
-	},
+	Deployments: map[uint32][]ConsensusDeployment{},
 
 	// Address encoding magics
 	NetworkAddressPrefix: "T",
@@ -80,7 +78,7 @@ var TestNetParams = Params{
 	// address generation.
 	HDCoinType: 223,
 
-	CoinbaseMaturity:        16,
+	CoinbaseMaturity: 16,
 
 	//OrganizationPkScript:  hexMustDecode("76a914868b9b6bc7e4a9c804ad3d3d7a2a6be27476941e88ac"),
 }

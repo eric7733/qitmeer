@@ -3,7 +3,7 @@
 package address
 
 import (
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"github.com/Qitmeer/qitmeer/params"
 )
 
@@ -12,8 +12,8 @@ import (
 //TODO, other addr type and ec type check
 func IsForNetwork(addr types.Address, p *params.Params) bool {
 	switch addr := addr.(type) {
-		case *PubKeyHashAddress:
-			return addr.netID == p.PubKeyHashAddrID
+	case *PubKeyHashAddress:
+		return addr.netID == p.PubKeyHashAddrID
 	}
 	return false
 }

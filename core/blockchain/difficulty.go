@@ -8,9 +8,9 @@ package blockchain
 
 import (
 	"fmt"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
 	"math/big"
 	"time"
-	"github.com/Qitmeer/qitmeer/common/hash"
 )
 
 var (
@@ -214,14 +214,14 @@ func (b *BlockChain) findPrevTestNetDifficulty(startNode *blockNode) uint32 {
 	// the special rule applied.
 	blocksPerRetarget := uint64(b.params.WorkDiffWindowSize *
 		b.params.WorkDiffWindows)
-	iterBlock:= b.bd.GetBlock(startNode.GetHash())
+	iterBlock := b.bd.GetBlock(startNode.GetHash())
 	var iterNode *blockNode
 	for {
 		if iterBlock == nil ||
-			uint64(iterBlock.GetHeight())%blocksPerRetarget == 0{
+			uint64(iterBlock.GetHeight())%blocksPerRetarget == 0 {
 			break
 		}
-		iterNode=b.index.lookupNode(iterBlock.GetHash())
+		iterNode = b.index.lookupNode(iterBlock.GetHash())
 		if iterNode.bits != b.params.PowLimitBits {
 			break
 		}
@@ -249,7 +249,7 @@ func (b *BlockChain) calcNextRequiredDifficulty(curNode *blockNode, newBlockTime
 	// just return this.
 	oldDiff := curNode.bits
 	oldDiffBig := CompactToBig(curNode.bits)
-	curBlock:=b.bd.GetBlock(curNode.GetHash())
+	curBlock := b.bd.GetBlock(curNode.GetHash())
 	// We're not at a retarget point, return the oldDiff.
 	if int64(curBlock.GetHeight()+1)%b.params.WorkDiffWindowSize != 0 {
 		// For networks that support it, allow special reduction of the
@@ -364,10 +364,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(curNode *blockNode, newBlockTime
 		// Get the previous node while staying at the genesis block as
 		// needed.
 		if oldNode.parents != nil {
-			oldBlock:=b.bd.GetBlock(oldNode.GetHash())
-			oldMainParent:=b.bd.GetBlock(oldBlock.GetMainParent())
+			oldBlock := b.bd.GetBlock(oldNode.GetHash())
+			oldMainParent := b.bd.GetBlock(oldBlock.GetMainParent())
 			if oldMainParent != nil {
-				oldNode=b.index.lookupNode(oldMainParent.GetHash())
+				oldNode = b.index.lookupNode(oldMainParent.GetHash())
 			}
 		}
 	}
@@ -412,10 +412,10 @@ func (b *BlockChain) calcNextRequiredDifficulty(curNode *blockNode, newBlockTime
 	// precision.
 	nextDiffBits := BigToCompact(nextDiffBig)
 	log.Debug("Difficulty retarget", "block main height", curBlock.GetHeight()+1)
-	log.Debug("Old target", "bits",fmt.Sprintf("%08x", curNode.bits),
-		"diff",fmt.Sprintf( "(%064x)",oldDiffBig))
-	log.Debug("New target", "bits",fmt.Sprintf("%08x", nextDiffBits),
-		"diff",fmt.Sprintf( "(%064x)",CompactToBig(nextDiffBits)))
+	log.Debug("Old target", "bits", fmt.Sprintf("%08x", curNode.bits),
+		"diff", fmt.Sprintf("(%064x)", oldDiffBig))
+	log.Debug("New target", "bits", fmt.Sprintf("%08x", nextDiffBits),
+		"diff", fmt.Sprintf("(%064x)", CompactToBig(nextDiffBits)))
 
 	return nextDiffBits, nil
 }
@@ -440,8 +440,8 @@ func (b *BlockChain) CalcNextRequiredDiffFromNode(hash *hash.Hash, timestamp tim
 // This function is safe for concurrent access.
 func (b *BlockChain) CalcNextRequiredDifficulty(timestamp time.Time) (uint32, error) {
 	b.chainLock.Lock()
-	block:=b.bd.GetMainChainTip()
-	node:=b.index.lookupNode(block.GetHash())
+	block := b.bd.GetMainChainTip()
+	node := b.index.lookupNode(block.GetHash())
 	difficulty, err := b.calcNextRequiredDifficulty(node, timestamp)
 	b.chainLock.Unlock()
 	return difficulty, err
@@ -472,4 +472,3 @@ func mergeDifficulty(oldDiff int64, newDiff1 int64, newDiff2 int64) int64 {
 
 	return summedChange.Int64()
 }
-

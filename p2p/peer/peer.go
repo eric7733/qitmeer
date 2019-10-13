@@ -7,13 +7,13 @@ package peer
 
 import (
 	"fmt"
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
+	"github.com/Qitmeer/qitmeer-lib/params/dcr/types"
 	"github.com/Qitmeer/qitmeer/core/blockdag"
 	"github.com/Qitmeer/qitmeer/core/message"
-	"github.com/Qitmeer/qitmeer/core/protocol"
-	"github.com/Qitmeer/qitmeer/core/types"
 	"github.com/Qitmeer/qitmeer/log"
-	"github.com/Qitmeer/qitmeer/params/dcr/types"
 	"github.com/satori/go.uuid"
 	"math/rand"
 	"net"
@@ -109,7 +109,7 @@ func (p *Peer) Disconnect() {
 	if atomic.AddInt32(&p.disconnect, 1) != 1 {
 		return
 	}
-	log.Trace("Disconnecting ", "peer",p.addr)
+	log.Trace("Disconnecting ", "peer", p.addr)
 	if atomic.LoadInt32(&p.connected) != 0 {
 		p.conn.Close()
 	}
@@ -136,7 +136,7 @@ func (p *Peer) AssociateConnection(conn net.Conn) {
 		// and no point recomputing.
 		na, err := types.NewNetAddressFailBack(p.conn.RemoteAddr(), p.services)
 		if err != nil {
-			log.Error("Cannot create remote net address", "error",err)
+			log.Error("Cannot create remote net address", "error", err)
 			p.Disconnect()
 			return
 		}
@@ -145,7 +145,7 @@ func (p *Peer) AssociateConnection(conn net.Conn) {
 
 	go func(peer *Peer) {
 		if err := peer.start(); err != nil {
-			log.Debug("Cannot start peer", "peer",peer.addr, "error",err)
+			log.Debug("Cannot start peer", "peer", peer.addr, "error", err)
 			peer.Disconnect()
 		}
 	}(p)
@@ -285,7 +285,6 @@ func (p *Peer) PushRejectMsg(command string, code message.RejectCode, reason str
 	<-doneChan
 }
 
-
 // NewInboundPeer returns a new inbound peer. Use Start to begin
 // processing incoming and outgoing messages.
 func NewInboundPeer(cfg *Config) *Peer {
@@ -350,23 +349,21 @@ func (p *Peer) Services() protocol.ServiceFlag {
 	return services
 }
 
-
-
 // PushGetBlocksMsg sends a getblocks message for the provided block locator
 // and stop hash.  It will ignore back-to-back duplicate requests.
 //
 // This function is safe for concurrent access.
-func (p *Peer) PushGetBlocksMsg(sgs *blockdag.GraphState,blocks []*hash.Hash) error {
-	gs:=sgs.Clone()
-	ok,bs:=p.prevGet.Check(p,gs,blocks)
+func (p *Peer) PushGetBlocksMsg(sgs *blockdag.GraphState, blocks []*hash.Hash) error {
+	gs := sgs.Clone()
+	ok, bs := p.prevGet.Check(p, gs, blocks)
 	if !ok {
 		return nil
 	}
 	// Construct the getblocks request and queue it to be sent.
 	msg := message.NewMsgGetBlocks(gs)
 	if !bs.IsEmpty() {
-		for k:=range bs.GetMap(){
-			ha:=k
+		for k := range bs.GetMap() {
+			ha := k
 			msg.AddBlockLocatorHash(&ha)
 		}
 
@@ -374,24 +371,24 @@ func (p *Peer) PushGetBlocksMsg(sgs *blockdag.GraphState,blocks []*hash.Hash) er
 	p.QueueMessage(msg, nil)
 	// Update the previous getblocks request information for filtering
 	// duplicates.
-	p.prevGet.Update(gs,blocks)
+	p.prevGet.Update(gs, blocks)
 	return nil
 }
 
 // PushGetHeadersMsg sends a getblocks message
 //
 // This function is safe for concurrent access.
-func (p *Peer) PushGetHeadersMsg(sgs *blockdag.GraphState,blocks []*hash.Hash) error {
-	gs:=sgs.Clone()
-	ok,bs:=p.prevGetHdrs.Check(p,gs,blocks)
+func (p *Peer) PushGetHeadersMsg(sgs *blockdag.GraphState, blocks []*hash.Hash) error {
+	gs := sgs.Clone()
+	ok, bs := p.prevGetHdrs.Check(p, gs, blocks)
 	if !ok {
 		return nil
 	}
 	// Construct the getblocks request and queue it to be sent.
 	msg := message.NewMsgGetHeaders(gs)
 	if !bs.IsEmpty() {
-		for k:=range bs.GetMap(){
-			ha:=k
+		for k := range bs.GetMap() {
+			ha := k
 			msg.AddBlockLocatorHash(&ha)
 		}
 
@@ -399,7 +396,7 @@ func (p *Peer) PushGetHeadersMsg(sgs *blockdag.GraphState,blocks []*hash.Hash) e
 	p.QueueMessage(msg, nil)
 	// Update the previous getblocks request information for filtering
 	// duplicates.
-	p.prevGetHdrs.Update(gs,blocks)
+	p.prevGetHdrs.Update(gs, blocks)
 	return nil
 }
 
@@ -418,7 +415,7 @@ func (p *Peer) UpdateLastGS(newGS *blockdag.GraphState) {
 	p.statsMtx.Lock()
 	if !p.lastGS.IsEqual(newGS) {
 		log.Trace(fmt.Sprintf("Updating last graph state of peer %v from %v to %v",
-			p.addr, p.lastGS.String(),newGS.String()))
+			p.addr, p.lastGS.String(), newGS.String()))
 		p.lastGS.Equal(newGS)
 	}
 	p.statsMtx.Unlock()
@@ -429,7 +426,7 @@ func (p *Peer) UpdateLastGS(newGS *blockdag.GraphState) {
 //
 // This function is safe for concurrent access.
 func (p *Peer) UpdateLastAnnouncedBlock(blkHash *hash.Hash) {
-	log.Trace("Updating last blk for peer", "peer",p.addr, "block hash",blkHash)
+	log.Trace("Updating last blk for peer", "peer", p.addr, "block hash", blkHash)
 
 	p.statsMtx.Lock()
 	p.lastAnnouncedBlock = blkHash
@@ -477,7 +474,7 @@ func (p *Peer) QueueInventory(invVect *message.InvVect) {
 // batches.  Inventory that the peer is already known to have is ignored.
 //
 // This function is safe for concurrent access.
-func (p *Peer) QueueInventoryImmediate(invVect *message.InvVect,gs *blockdag.GraphState) {
+func (p *Peer) QueueInventoryImmediate(invVect *message.InvVect, gs *blockdag.GraphState) {
 	// Don't announce the inventory if the peer is already known to have it.
 	if p.knownInventory.Exists(invVect) {
 		return
@@ -492,7 +489,7 @@ func (p *Peer) QueueInventoryImmediate(invVect *message.InvVect,gs *blockdag.Gra
 
 	// Generate and queue a single inv message with the inventory vector.
 	invMsg := message.NewMsgInvSizeHint(1)
-	invMsg.GS=gs
+	invMsg.GS = gs
 	invMsg.AddInvVect(invVect)
 	p.AddKnownInventory(invVect)
 	p.outputQueue <- outMsg{msg: invMsg, doneChan: nil}
@@ -509,7 +506,7 @@ func (p *Peer) LastAnnouncedBlock() *hash.Hash {
 	return lastAnnouncedBlock
 }
 
-func (p*Peer) CleanGetBlocksSet() {
+func (p *Peer) CleanGetBlocksSet() {
 	p.statsMtx.RLock()
 	p.prevGet.Clean()
 	p.prevGetHdrs.Clean()
@@ -563,7 +560,7 @@ func (p *Peer) StatsSnapshot() *StatsSnap {
 
 	p.flagsMtx.Lock()
 	id := p.id
-	uuid:=p.uuid
+	uuid := p.uuid
 	addr := p.addr
 	userAgent := p.userAgent
 	services := p.services

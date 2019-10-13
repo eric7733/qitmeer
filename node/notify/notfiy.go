@@ -1,8 +1,8 @@
 package notify
 
 import (
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"github.com/Qitmeer/qitmeer/core/message"
-	"github.com/Qitmeer/qitmeer/core/types"
 )
 
 // Notify interface manage message announce & relay & notification between mempool, websocket, gbt long pull
@@ -12,4 +12,3 @@ type Notify interface {
 	RelayInventory(invVect *message.InvVect, data interface{})
 	BroadcastMessage(msg message.Message)
 }
-

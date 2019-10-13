@@ -7,9 +7,9 @@ package blockchain
 
 import (
 	"fmt"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"time"
-	"github.com/Qitmeer/qitmeer/core/types"
-	"github.com/Qitmeer/qitmeer/common/hash"
 )
 
 // BehaviorFlags is a bitmask defining tweaks to the normal behavior when
@@ -42,14 +42,14 @@ const (
 //
 // This function MUST be called with the chain state lock held (for writes).
 func (b *BlockChain) processOrphans(h *hash.Hash, flags BehaviorFlags) error {
-	for  {
-		needLoop:=false
-		for _,v:=range b.orphans{
-			allExists:=true
-			for _,h:=range v.block.Block().Parents{
-				exists:= b.index.HaveBlock(h)
+	for {
+		needLoop := false
+		for _, v := range b.orphans {
+			allExists := true
+			for _, h := range v.block.Block().Parents {
+				exists := b.index.HaveBlock(h)
 				if !exists {
-					allExists=false
+					allExists = false
 					break
 				}
 			}
@@ -66,7 +66,7 @@ func (b *BlockChain) processOrphans(h *hash.Hash, flags BehaviorFlags) error {
 				if err != nil {
 					return err
 				}
-				needLoop=true
+				needLoop = true
 				break
 			}
 		}
@@ -98,7 +98,7 @@ func (b *BlockChain) ProcessBlock(block *types.SerializedBlock, flags BehaviorFl
 	fastAdd := flags&BFFastAdd == BFFastAdd
 
 	blockHash := block.Hash()
-	log.Trace("Processing block ","hash", blockHash)
+	log.Trace("Processing block ", "hash", blockHash)
 
 	// The block must not already exist in the main chain or side chains.
 	if b.index.HaveBlock(blockHash) {
@@ -160,9 +160,9 @@ func (b *BlockChain) ProcessBlock(block *types.SerializedBlock, flags BehaviorFl
 	}
 
 	// Handle orphan blocks.
-	for _,pb:=range block.Block().Parents{
+	for _, pb := range block.Block().Parents {
 		if !b.index.HaveBlock(pb) {
-			log.Trace(fmt.Sprintf("Adding orphan block %s with parent %s", blockHash.String(),pb.String()))
+			log.Trace(fmt.Sprintf("Adding orphan block %s with parent %s", blockHash.String(), pb.String()))
 			b.addOrphanBlock(block)
 
 			// The fork length of orphans is unknown since they, by definition, do

@@ -3,6 +3,7 @@ module github.com/Qitmeer/qitmeer
 go 1.12
 
 require (
+	github.com/Qitmeer/qitmeer-lib v0.0.0-20190929044832-b10740b316a8
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dchest/blake256 v1.0.0
 	github.com/deckarep/golang-set v1.7.1

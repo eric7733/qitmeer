@@ -5,19 +5,19 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
+	"github.com/Qitmeer/qitmeer-lib/crypto/ecc"
 	"github.com/Qitmeer/qitmeer/common/marshal"
 	"github.com/Qitmeer/qitmeer/core/address"
+	"github.com/Qitmeer/qitmeer/core/blockdag"
 	"github.com/Qitmeer/qitmeer/core/json"
 	"github.com/Qitmeer/qitmeer/core/message"
-	"github.com/Qitmeer/qitmeer/core/protocol"
-	"github.com/Qitmeer/qitmeer/core/types"
-	"github.com/Qitmeer/qitmeer/crypto/ecc"
+	"github.com/Qitmeer/qitmeer/database"
 	"github.com/Qitmeer/qitmeer/engine/txscript"
 	"github.com/Qitmeer/qitmeer/params"
 	"github.com/Qitmeer/qitmeer/rpc"
-	"github.com/Qitmeer/qitmeer/core/blockdag"
-	"github.com/Qitmeer/qitmeer/database"
 	"github.com/Qitmeer/qitmeer/services/mempool"
 )
 
@@ -37,7 +37,7 @@ type PublicTxAPI struct {
 }
 
 func NewPublicTxAPI(tm *TxManager) *PublicTxAPI {
-	ptapi:=PublicTxAPI{tm}
+	ptapi := PublicTxAPI{tm}
 	return &ptapi
 }
 
@@ -49,7 +49,6 @@ type TransactionInput struct {
 }
 
 type Amounts map[string]uint64 //{\"address\":amount,...}
-
 
 func (api *PublicTxAPI) CreateRawTransaction(inputs []TransactionInput,
 	amounts Amounts, lockTime *int64) (interface{}, error) {
@@ -126,13 +125,12 @@ func (api *PublicTxAPI) CreateRawTransaction(inputs []TransactionInput,
 	// is intentionally not directly returning because the first return
 	// value is a string and it would result in returning an empty string to
 	// the client instead of nothing (nil) in the case of an error.
-	mtxHex, err := marshal.MessageToHex(&message.MsgTx{Tx:mtx})
+	mtxHex, err := marshal.MessageToHex(&message.MsgTx{Tx: mtx})
 	if err != nil {
 		return nil, err
 	}
 	return mtxHex, nil
 }
-
 
 func (api *PublicTxAPI) DecodeRawTransaction(hexTx string) (interface{}, error) {
 	// Deserialize the transaction.
@@ -156,12 +154,12 @@ func (api *PublicTxAPI) DecodeRawTransaction(hexTx string) (interface{}, error) 
 
 	// Create and return the result.
 	txReply := &json.OrderedResult{
-		{Key:"txid", Val:mtx.TxHash().String()},
-		{Key:"txhash", Val:mtx.TxHashFull().String()},
-		{Key:"version", Val:int32(mtx.Version)},
-		{Key:"locktime", Val:mtx.LockTime},
-		{Key:"vin", Val:marshal.MarshJsonVin(&mtx)},
-		{Key:"vout", Val:marshal.MarshJsonVout(&mtx, nil,api.txManager.bm.ChainParams())},
+		{Key: "txid", Val: mtx.TxHash().String()},
+		{Key: "txhash", Val: mtx.TxHashFull().String()},
+		{Key: "version", Val: int32(mtx.Version)},
+		{Key: "locktime", Val: mtx.LockTime},
+		{Key: "vin", Val: marshal.MarshJsonVin(&mtx)},
+		{Key: "vout", Val: marshal.MarshJsonVout(&mtx, nil, api.txManager.bm.ChainParams())},
 	}
 	return txReply, nil
 }
@@ -295,7 +293,7 @@ func (api *PublicTxAPI) GetRawTransaction(txHash hash.Hash, verbose bool) (inter
 			// string and it would result in returning an empty
 			// string to the client instead of nothing (nil) in the
 			// case of an error.
-			hexStr, err := marshal.MessageToHex(&message.MsgTx{Tx:tx.Transaction()})
+			hexStr, err := marshal.MessageToHex(&message.MsgTx{Tx: tx.Transaction()})
 			if err != nil {
 				return nil, err
 			}
@@ -308,7 +306,7 @@ func (api *PublicTxAPI) GetRawTransaction(txHash hash.Hash, verbose bool) (inter
 
 	if blkHash != nil {
 		blkHashStr = blkHash.String()
-		confirmations=int64(api.txManager.bm.GetChain().BlockDAG().GetConfirmations(blkHash))
+		confirmations = int64(api.txManager.bm.GetChain().BlockDAG().GetConfirmations(blkHash))
 	}
 	if tx != nil {
 		confirmations = 0
@@ -374,7 +372,7 @@ func (api *PublicTxAPI) GetUtxo(txHash hash.Hash, vout uint32, includeMempool *b
 	// otherwise try to lookup utxo set
 	if bestBlockHash == "" {
 		out := types.TxOutPoint{Hash: txHash, OutIndex: vout}
-		entry,err:= api.txManager.bm.GetChain().FetchUtxoEntry(out)
+		entry, err := api.txManager.bm.GetChain().FetchUtxoEntry(out)
 		if err != nil {
 			return nil, rpc.RpcNoTxInfoError(&txHash)
 		}
@@ -384,13 +382,13 @@ func (api *PublicTxAPI) GetUtxo(txHash hash.Hash, vout uint32, includeMempool *b
 		best := api.txManager.bm.GetChain().BestSnapshot()
 		bestBlockHash = best.Hash.String()
 		if hash.ZeroHash.IsEqual(entry.BlockHash()) {
-			confirmations=0
-		}else {
-			block:=api.txManager.bm.GetChain().BlockDAG().GetBlock(entry.BlockHash())
+			confirmations = 0
+		} else {
+			block := api.txManager.bm.GetChain().BlockDAG().GetBlock(entry.BlockHash())
 			if block == nil {
-				confirmations=0
-			}else {
-				confirmations=int64(best.GraphState.GetLayer()-block.GetLayer())
+				confirmations = 0
+			} else {
+				confirmations = int64(best.GraphState.GetLayer() - block.GetLayer())
 			}
 		}
 		amount = entry.Amount()
@@ -433,10 +431,10 @@ func (api *PublicTxAPI) GetUtxo(txHash hash.Hash, vout uint32, includeMempool *b
 func (api *PublicTxAPI) TxSign(privkeyStr string, rawTxStr string) (interface{}, error) {
 	privkeyByte, err := hex.DecodeString(privkeyStr)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	if len(privkeyByte) != 32 {
-		return nil,fmt.Errorf("error:%d",len(privkeyByte))
+		return nil, fmt.Errorf("error:%d", len(privkeyByte))
 	}
 	privateKey, pubKey := ecc.Secp256k1.PrivKeyFromBytes(privkeyByte)
 	h160 := hash.Hash160(pubKey.SerializeCompressed())
@@ -444,29 +442,29 @@ func (api *PublicTxAPI) TxSign(privkeyStr string, rawTxStr string) (interface{},
 	param := api.txManager.bm.ChainParams()
 	addr, err := address.NewPubKeyHashAddress(h160, param, ecc.ECDSA_Secp256k1)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	// Create a new script which pays to the provided address.
 	pkScript, err := txscript.PayToAddrScript(addr)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	if len(rawTxStr)%2 != 0 {
-		return nil,fmt.Errorf("rawTxStr:%d",len(rawTxStr))
+		return nil, fmt.Errorf("rawTxStr:%d", len(rawTxStr))
 	}
 
 	serializedTx, err := hex.DecodeString(rawTxStr)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	var redeemTx types.Transaction
 	err = redeemTx.Deserialize(bytes.NewReader(serializedTx))
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-	var kdb txscript.KeyClosure= func(types.Address) (ecc.PrivateKey, bool, error) {
+	var kdb txscript.KeyClosure = func(types.Address) (ecc.PrivateKey, bool, error) {
 		return privateKey, true, nil // compressed is true
 	}
 	//
@@ -475,10 +473,10 @@ func (api *PublicTxAPI) TxSign(privkeyStr string, rawTxStr string) (interface{},
 		return nil, fmt.Errorf("the transaction index " +
 			"must be enabled to query the blockchain (specify --txindex in configuration)")
 	}
-	confirmationsM:=map[hash.Hash]uint{}
+	confirmationsM := map[hash.Hash]uint{}
 
-	for i:=0;i<len(redeemTx.TxIn);i++ {
-		txHash:=redeemTx.TxIn[i].PreviousOut.Hash
+	for i := 0; i < len(redeemTx.TxIn); i++ {
+		txHash := redeemTx.TxIn[i].PreviousOut.Hash
 		// Look up the location of the transaction.
 		blockRegion, err := txIndex.TxBlockRegion(txHash)
 		if err != nil {
@@ -505,50 +503,50 @@ func (api *PublicTxAPI) TxSign(privkeyStr string, rawTxStr string) (interface{},
 			return nil, err
 		}
 
-		if redeemTx.TxIn[i].PreviousOut.OutIndex>=uint32(len(prevTx.TxOut)) {
-			return nil,fmt.Errorf("index:%d",redeemTx.TxIn[i].PreviousOut.OutIndex)
+		if redeemTx.TxIn[i].PreviousOut.OutIndex >= uint32(len(prevTx.TxOut)) {
+			return nil, fmt.Errorf("index:%d", redeemTx.TxIn[i].PreviousOut.OutIndex)
 		}
 
 		//
-		blockNode:=api.txManager.bm.GetChain().BlockIndex().LookupNode(blockRegion.Hash)
+		blockNode := api.txManager.bm.GetChain().BlockIndex().LookupNode(blockRegion.Hash)
 		if blockNode == nil {
-			return nil,fmt.Errorf("Can't find block %s",blockRegion.Hash)
+			return nil, fmt.Errorf("Can't find block %s", blockRegion.Hash)
 		}
 
-		if _,ok:=confirmationsM[*blockRegion.Hash];!ok {
-			confirmationsM[*blockRegion.Hash]= api.txManager.bm.GetChain().BlockDAG().GetConfirmations(blockRegion.Hash)
+		if _, ok := confirmationsM[*blockRegion.Hash]; !ok {
+			confirmationsM[*blockRegion.Hash] = api.txManager.bm.GetChain().BlockDAG().GetConfirmations(blockRegion.Hash)
 		}
 
 		if !blockNode.GetStatus().KnownValid() || confirmationsM[*blockRegion.Hash] < blockdag.StableConfirmations {
-			return nil,fmt.Errorf("Vin is  illegal %s",blockRegion.Hash)
+			return nil, fmt.Errorf("Vin is  illegal %s", blockRegion.Hash)
 		}
 		sigScript, err := txscript.SignTxOutput(param, &redeemTx, i, pkScript, txscript.SigHashAll, kdb, nil, nil, ecc.ECDSA_Secp256k1)
 		if err != nil {
-			return nil,err
+			return nil, err
 		}
-		redeemTx.TxIn[i].SignScript=sigScript
+		redeemTx.TxIn[i].SignScript = sigScript
 	}
 
-	mtxHex, err := marshal.MessageToHex(&message.MsgTx{Tx:&redeemTx})
+	mtxHex, err := marshal.MessageToHex(&message.MsgTx{Tx: &redeemTx})
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	return mtxHex, nil
 }
 
 // handleSearchRawTransactions implements the searchrawtransactions command.
-func (api *PublicTxAPI) GetRawTransactions(addre string,vinext *bool,count *uint,skip *uint,revers *bool,verbose *bool,filterAddrs *[]string) (interface{}, error) {
+func (api *PublicTxAPI) GetRawTransactions(addre string, vinext *bool, count *uint, skip *uint, revers *bool, verbose *bool, filterAddrs *[]string) (interface{}, error) {
 	addrIndex := api.txManager.addrIndex
 	if addrIndex == nil {
 		return nil, fmt.Errorf("Address index must be enabled (--addrindex)")
 	}
-	vinExtra:=false
+	vinExtra := false
 	if vinext != nil {
 		vinExtra = *vinext
 	}
 
 	if vinExtra && api.txManager.txIndex == nil {
-		return nil,fmt.Errorf("Transaction index must be enabled (--txindex)")
+		return nil, fmt.Errorf("Transaction index must be enabled (--txindex)")
 	}
 	params := api.txManager.bm.ChainParams()
 	addr, err := address.DecodeAddress(addre)
@@ -620,7 +618,7 @@ func (api *PublicTxAPI) GetRawTransactions(addre string,vinext *bool,count *uint
 		})
 		if err != nil {
 			context := "Failed to load address index entries"
-			return nil, fmt.Errorf("%s %s",err.Error(), context)
+			return nil, fmt.Errorf("%s %s", err.Error(), context)
 		}
 
 	}
@@ -658,7 +656,7 @@ func (api *PublicTxAPI) GetRawTransactions(addre string,vinext *bool,count *uint
 
 		// Serialize the transaction first and convert to hex when the
 		// retrieved transaction is the deserialized structure.
-		hexTxns[i], err = marshal.MessageToHex(&message.MsgTx{Tx:rtx.tx.Tx})
+		hexTxns[i], err = marshal.MessageToHex(&message.MsgTx{Tx: rtx.tx.Tx})
 		if err != nil {
 			return nil, err
 		}
@@ -690,13 +688,13 @@ func (api *PublicTxAPI) GetRawTransactions(addre string,vinext *bool,count *uint
 		if rtx.tx == nil {
 			// Deserialize the transaction.
 			mtx = new(message.MsgTx)
-			err := mtx.Decode(bytes.NewReader(rtx.txBytes),protocol.ProtocolVersion)
+			err := mtx.Decode(bytes.NewReader(rtx.txBytes), protocol.ProtocolVersion)
 			if err != nil {
 				context := "Failed to deserialize transaction"
-				return nil, fmt.Errorf("%s %s",err.Error(), context)
+				return nil, fmt.Errorf("%s %s", err.Error(), context)
 			}
 		} else {
-			mtx = &message.MsgTx{Tx:rtx.tx.Tx}
+			mtx = &message.MsgTx{Tx: rtx.tx.Tx}
 		}
 
 		result := &srtList[i]
@@ -707,7 +705,7 @@ func (api *PublicTxAPI) GetRawTransactions(addre string,vinext *bool,count *uint
 		if err != nil {
 			return nil, err
 		}
-		result.Vout = marshal.MarshJsonVout(mtx.Tx, filterAddrMap,params)
+		result.Vout = marshal.MarshJsonVout(mtx.Tx, filterAddrMap, params)
 		result.Version = mtx.Tx.Version
 		result.LockTime = mtx.Tx.LockTime
 
@@ -721,7 +719,7 @@ func (api *PublicTxAPI) GetRawTransactions(addre string,vinext *bool,count *uint
 			// Fetch the header from chain.
 			header, err := api.txManager.bm.GetChain().HeaderByHash(blkHash)
 			if err != nil {
-				return nil, rpc.RpcInternalError("Block not found","")
+				return nil, rpc.RpcInternalError("Block not found", "")
 			}
 			blkHeader = &header
 			blkHashStr = blkHash.String()
@@ -922,7 +920,7 @@ func (api *PublicTxAPI) fetchInputTxos(tx *message.MsgTx) (map[types.TxOutPoint]
 
 		// Deserialize the transaction
 		var msgTx message.MsgTx
-		err = msgTx.Decode(bytes.NewReader(txBytes),protocol.ProtocolVersion)
+		err = msgTx.Decode(bytes.NewReader(txBytes), protocol.ProtocolVersion)
 		if err != nil {
 			context := "Failed to deserialize transaction"
 			return nil, rpc.RpcInternalError(err.Error(), context)

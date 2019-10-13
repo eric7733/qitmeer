@@ -6,13 +6,13 @@
 package params
 
 import (
+	"encoding/hex"
 	"errors"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"math/big"
 	"time"
-	"github.com/Qitmeer/qitmeer/core/types"
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/core/protocol"
-	"encoding/hex"
 )
 
 // CheckForDuplicateHashes checks for duplicate hashes when validating blocks.
@@ -118,7 +118,6 @@ type Params struct {
 	// of the exponentially weighted average.
 	WorkDiffWindows int64
 
-
 	// CoinbaseMaturity is the number of blocks required before newly mined
 	// coins (coinbase transactions) can be spent.
 	CoinbaseMaturity uint16
@@ -164,7 +163,6 @@ type Params struct {
 	// MaxTxSize is the maximum number of bytes a serialized transaction can
 	// be in order to be considered valid by consensus.
 	MaxTxSize int
-
 
 	// Subsidy parameters.
 	//
@@ -229,15 +227,13 @@ type Params struct {
 	NetworkAddressPrefix string
 
 	// Address encoding magics
-	PubKeyAddrID           [2]byte // First 2 bytes of a P2PK address
-	PubKeyHashAddrID       [2]byte // First 2 bytes of P2PKH address
-	PKHEdwardsAddrID       [2]byte // First 2 bytes of Edwards P2PKH address
-	PKHSchnorrAddrID       [2]byte // First 2 bytes of secp256k1 Schnorr P2PKH address
+	PubKeyAddrID     [2]byte // First 2 bytes of a P2PK address
+	PubKeyHashAddrID [2]byte // First 2 bytes of P2PKH address
+	PKHEdwardsAddrID [2]byte // First 2 bytes of Edwards P2PKH address
+	PKHSchnorrAddrID [2]byte // First 2 bytes of secp256k1 Schnorr P2PKH address
 
-	ScriptHashAddrID       [2]byte // First 2 bytes of a P2SH address
-	PrivateKeyID           [2]byte // First 2 bytes of a WIF private key
-
-
+	ScriptHashAddrID [2]byte // First 2 bytes of a P2SH address
+	PrivateKeyID     [2]byte // First 2 bytes of a WIF private key
 
 	// BIP32 hierarchical deterministic extended key magics
 	HDPrivateKeyID [4]byte
@@ -251,15 +247,13 @@ type Params struct {
 	// distributed to in every block's coinbase. It should ideally be a P2SH
 	// multisignature address.
 	// TODO revisit the org-pkscript design
-	OrganizationPkScript        []byte
+	OrganizationPkScript []byte
 
 	//DAG
 	BlockDelay    float64
 	BlockRate     float64
 	SecurityLevel float64
 }
-
-
 
 // TotalSubsidyProportions is the sum of POW Reward, POS Reward, and Tax
 // proportions.
@@ -280,10 +274,10 @@ var (
 )
 
 var (
-	registeredNets       = make(map[protocol.Network]struct{})
-	pubKeyHashAddrIDs    = make(map[[2]byte]struct{})
-	scriptHashAddrIDs    = make(map[[2]byte]struct{})
-	hdPrivToPubKeyIDs    = make(map[[4]byte][]byte)
+	registeredNets    = make(map[protocol.Network]struct{})
+	pubKeyHashAddrIDs = make(map[[2]byte]struct{})
+	scriptHashAddrIDs = make(map[[2]byte]struct{})
+	hdPrivToPubKeyIDs = make(map[[4]byte][]byte)
 )
 
 // String returns the hostname of the DNS seed in human-readable form.

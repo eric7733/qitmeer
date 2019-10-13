@@ -6,10 +6,9 @@
 package addmgr
 
 import (
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"sync"
 	"time"
-
 )
 
 // KnownAddress tracks information about a known network address that is used

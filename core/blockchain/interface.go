@@ -1,12 +1,11 @@
 package blockchain
 
 import (
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 )
 
 type TxManager interface {
-
 	RemoveInvalidTx(bh *hash.Hash)
 
 	GetInvalidTxFromBlock(bh *hash.Hash) []*hash.Hash
@@ -19,7 +18,6 @@ type TxManager interface {
 }
 
 type TxPool interface {
-
 	AddTransaction(utxoView *UtxoViewpoint,
 		tx *types.Tx, height uint64, fee int64)
 

@@ -2,8 +2,8 @@ package qx
 
 import (
 	"encoding/hex"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
 	"github.com/Qitmeer/qitmeer/common/encode/base58"
-	"github.com/Qitmeer/qitmeer/common/hash"
 	"github.com/Qitmeer/qitmeer/params"
 )
 

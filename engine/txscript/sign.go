@@ -10,15 +10,15 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Qitmeer/qitmeer/core/types"
-	"github.com/Qitmeer/qitmeer/core/address"
-	"github.com/Qitmeer/qitmeer/crypto/ecc"
-	"github.com/Qitmeer/qitmeer/params"
-	"github.com/Qitmeer/qitmeer/common/hash"
 	"bytes"
 	"encoding/binary"
-	"github.com/Qitmeer/qitmeer/params/btc/types"
-	"github.com/Qitmeer/qitmeer/common/hash/btc"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash/btc"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
+	"github.com/Qitmeer/qitmeer-lib/crypto/ecc"
+	"github.com/Qitmeer/qitmeer-lib/params/btc/types"
+	"github.com/Qitmeer/qitmeer/core/address"
+	"github.com/Qitmeer/qitmeer/params"
 )
 
 // RawTxInSignature returns the serialized ECDSA signature for the input idx of
@@ -647,12 +647,12 @@ func sign2(tx types.ScriptTx, idx int,
 	sigType sigTypes) ([]byte,
 	ScriptClass, []types.Address, int, error) {
 
-	s,err :=ParsePkScript(subScript)
+	s, err := ParsePkScript(subScript)
 
 	if err != nil {
 		return nil, NonStandardTy, nil, 0, err
 	}
-	class :=s.GetClass()
+	class := s.GetClass()
 	addresses := s.GetAddresses()
 	nrequired := 0
 	if s.RequiredSigs() {
@@ -683,7 +683,7 @@ func sign2(tx types.ScriptTx, idx int,
 	case MultiSigTy:
 		// TODO
 		return nil, class, nil, 0,
-			fmt.Errorf("NOT support %s transactions",class)
+			fmt.Errorf("NOT support %s transactions", class)
 	case NullDataTy:
 		return nil, class, nil, 0,
 			errors.New("can't sign NULLDATA transactions")
@@ -693,7 +693,7 @@ func sign2(tx types.ScriptTx, idx int,
 	}
 	//TODO should not go here
 	return nil, class, nil, 0,
-		fmt.Errorf("NOT support %s transactions",class)
+		fmt.Errorf("NOT support %s transactions", class)
 }
 
 // SignatureScript2, ( refactor of SignatureScript)
@@ -728,10 +728,10 @@ func RawTxInSignature2(tx types.ScriptTx, idx int, subScript []byte,
 	var h []byte
 	// TODO, need to abstract SignatureHash calculator, instead of switch by type
 	switch tx.GetType() {
-		case types.QitmeerScriptTx:
-			h, err = calcSignatureHash2(parsedScript, hashType, tx, idx, nil)
-		case types.BtcScriptTx:
-			h = calcSignatureHash_btc(parsedScript, hashType, tx, idx)
+	case types.QitmeerScriptTx:
+		h, err = calcSignatureHash2(parsedScript, hashType, tx, idx, nil)
+	case types.BtcScriptTx:
+		h = calcSignatureHash_btc(parsedScript, hashType, tx, idx)
 	}
 	if err != nil {
 		return nil, err
@@ -750,7 +750,7 @@ func RawTxInSignature2(tx types.ScriptTx, idx int, subScript []byte,
 // 2 -> normal
 func calcSignatureHash2(prevOutScript []ParsedOpcode, hashType SigHashType, txScript types.ScriptTx, idx int, cachedPrefix *hash.Hash) ([]byte, error) {
 	// TODO, error handling
-	tx,_ := txScript.(*types.Transaction)
+	tx, _ := txScript.(*types.Transaction)
 
 	// The SigHashSingle signature type signs only the corresponding input
 	// and output (the output with the same index number as the input).
@@ -1062,7 +1062,7 @@ func calcSignatureHash_btc(script []ParsedOpcode, hashType SigHashType, scriptTx
 	// value) appended.
 	wbuf := bytes.NewBuffer(make([]byte, 0, txCopy.SerializeSizeStripped()+4))
 	txCopy.SerializeNoWitness(wbuf)
-	binary.Write(wbuf, binary.LittleEndian, uint32(hashType))  //NOTE: the hashType in BTC is Uint32, TODO unify the serilization
+	binary.Write(wbuf, binary.LittleEndian, uint32(hashType)) //NOTE: the hashType in BTC is Uint32, TODO unify the serilization
 	return btc.DoubleHashB(wbuf.Bytes())
 }
 
@@ -1098,7 +1098,7 @@ func shallowCopyTx(tx types.ScriptTx) (types.Transaction,error){
 // calculating the signature hash.  It is used over the Copy method on the
 // transaction itself since that is a deep copy and therefore does more work and
 // allocates much more space than needed.
-func shallowCopyBtcTx(tx types.ScriptTx) (btctypes.BtcTx, error){
+func shallowCopyBtcTx(tx types.ScriptTx) (btctypes.BtcTx, error) {
 	// As an additional memory optimization, use contiguous backing arrays
 	// for the copied inputs and outputs and point the final slice of
 	// pointers into the contiguous arrays.  This avoids a lot of small
@@ -1111,9 +1111,9 @@ func shallowCopyBtcTx(tx types.ScriptTx) (btctypes.BtcTx, error){
 	}
 	txIns := make([]btctypes.TxIn, len(tx.GetInput()))
 	for i, oldTxIn := range tx.GetInput() {
-		in, ok := oldTxIn.(*btctypes.TxIn);
+		in, ok := oldTxIn.(*btctypes.TxIn)
 		if !ok {
-			return txCopy, fmt.Errorf("fail to convert %v to TxIN",oldTxIn)
+			return txCopy, fmt.Errorf("fail to convert %v to TxIN", oldTxIn)
 		}
 		txIns[i] = *in
 		txCopy.TxIn[i] = &txIns[i]
@@ -1122,12 +1122,12 @@ func shallowCopyBtcTx(tx types.ScriptTx) (btctypes.BtcTx, error){
 	for i, oldTxOut := range tx.GetOutput() {
 		out, ok := oldTxOut.(*btctypes.TxOut)
 		if !ok {
-			return txCopy, fmt.Errorf("fail to convert %v to TxOut",oldTxOut)
+			return txCopy, fmt.Errorf("fail to convert %v to TxOut", oldTxOut)
 		}
 		txOuts[i] = *out
 		txCopy.TxOut[i] = &txOuts[i]
 	}
-	return txCopy,nil
+	return txCopy, nil
 }
 
 // shallowCopyTx creates a shallow copy of the transaction for use when
@@ -1186,11 +1186,11 @@ func mergeScripts2(tx types.ScriptTx, idx int,
 
 		// We already know this information somewhere up the stack,
 		// therefore the error is ignored.
-		s,_:= ParsePkScript(script)
+		s, _ := ParsePkScript(script)
 		class := s.GetClass()
 		addresses := s.GetAddresses()
 		nrequired := 0
-		if (s.RequiredSigs()) {
+		if s.RequiredSigs() {
 			nrequired = 1
 		}
 		// regenerate scripts.
@@ -1224,6 +1224,7 @@ func mergeScripts2(tx types.ScriptTx, idx int,
 		return prevScript
 	}
 }
+
 // mergeMultiSig2 (refactor of mergeMultiSig)
 func mergeMultiSig2(tx types.ScriptTx, idx int, addresses []types.Address,
 	nRequired int, pkScript, sigScript, prevScript []byte) []byte {
@@ -1286,12 +1287,12 @@ sigLoop:
 		// would make the transaction nonstandard and thus not
 		// MultiSigTy, so we just need to hash the full thing.
 		var h []byte
-			// TODO, need to abstract SignatureHash calculator, instead of switch by type
-			switch tx.GetType() {
-			case types.QitmeerScriptTx:
-				h, err = calcSignatureHash2(pkPops, hashType, tx, idx, nil)
-			case types.BtcScriptTx:
-				h = calcSignatureHash_btc(pkPops, hashType, tx, idx)
+		// TODO, need to abstract SignatureHash calculator, instead of switch by type
+		switch tx.GetType() {
+		case types.QitmeerScriptTx:
+			h, err = calcSignatureHash2(pkPops, hashType, tx, idx, nil)
+		case types.BtcScriptTx:
+			h = calcSignatureHash_btc(pkPops, hashType, tx, idx)
 		}
 		if err != nil {
 			// is this the right handling for SIGHASH_SINGLE error ?

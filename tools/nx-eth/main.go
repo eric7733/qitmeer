@@ -6,11 +6,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/crypto/ecc/secp256k1"
+	"github.com/Qitmeer/qitmeer/common/math"
 	"math/big"
 	"os"
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/common/math"
-	"github.com/Qitmeer/qitmeer/crypto/ecc/secp256k1"
 )
 
 // Lengths of hashes and addresses in bytes.

@@ -1,6 +1,6 @@
 package blockdag
 
-import "github.com/Qitmeer/qitmeer/common/hash"
+import "github.com/Qitmeer/qitmeer-lib/common/hash"
 
 // HashList is used to sort hash list
 type HashList []*hash.Hash
@@ -18,7 +18,7 @@ func (sh HashList) Swap(i, j int) {
 }
 
 func (sh HashList) Has(h *hash.Hash) bool {
-	for _,v:=range sh{
+	for _, v := range sh {
 		if v.IsEqual(h) {
 			return true
 		}

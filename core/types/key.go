@@ -3,11 +3,11 @@
 package types
 
 import (
-	"github.com/Qitmeer/qitmeer/crypto/ecc"
+	"github.com/Qitmeer/qitmeer-lib/crypto/ecc"
 )
 
 type Key struct {
-	Address Address
+	Address    Address
 	PrivateKey *ecc.PrivateKey
 }
 

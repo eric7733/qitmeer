@@ -2,9 +2,10 @@ package blkmgr
 
 import (
 	"fmt"
+	"github.com/Qitmeer/qitmeer-lib/params/dcr/types"
 	"github.com/Qitmeer/qitmeer/core/message"
-	"github.com/Qitmeer/qitmeer/params/dcr/types"
 )
+
 const (
 	// maxRequestedBlocks is the maximum number of requested block
 	// hashes to store in memory.
@@ -48,7 +49,7 @@ func (b *BlockManager) handleInvMsg(imsg *invMsg) {
 	// request parent blocks of orphans if we receive one we already have.
 	// Finally, attempt to detect potential stalls due to long side chains
 	// we already have and request more blocks to prevent them.
-	gs:=b.chain.BestSnapshot().GraphState
+	gs := b.chain.BestSnapshot().GraphState
 
 	for i, iv := range invVects {
 		// Ignore unsupported inventory types.
@@ -70,7 +71,7 @@ func (b *BlockManager) handleInvMsg(imsg *invMsg) {
 		if err != nil {
 			log.Warn("Unexpected failure when checking for "+
 				"existing inventory during inv message "+
-				"processing","error", err)
+				"processing", "error", err)
 			continue
 		}
 		if !haveInv {
@@ -102,12 +103,12 @@ func (b *BlockManager) handleInvMsg(imsg *invMsg) {
 				// Request blocks starting at the latest known
 				// up to the root of the orphan that just came
 				// in.
-				locator:= b.chain.GetOrphanParents(&iv.Hash)
-				if len(locator)==0 {
+				locator := b.chain.GetOrphanParents(&iv.Hash)
+				if len(locator) == 0 {
 					log.Error("Failed to get block locator for the orphan block")
 					continue
 				}
-				err = imsg.peer.PushGetBlocksMsg(gs,locator)
+				err = imsg.peer.PushGetBlocksMsg(gs, locator)
 				if err != nil {
 					log.Error("Failed to push getblocksmsg for orphan chain",
 						"error", err)

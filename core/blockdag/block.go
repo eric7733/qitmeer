@@ -1,7 +1,7 @@
 package blockdag
 
 import (
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
 	s "github.com/Qitmeer/qitmeer/core/serialization"
 	"io"
 )
@@ -46,8 +46,8 @@ type IBlock interface {
 	// Add child nodes to block
 	AddChild(child *Block)
 
-    // Get all the children of block
-    GetChildren() *HashSet
+	// Get all the children of block
+	GetChildren() *HashSet
 
 	// Detecting the presence of child nodes
 	HasChildren() bool
@@ -58,8 +58,8 @@ type IBlock interface {
 	// Setting the weight of block
 	SetWeight(weight uint)
 
-    // Acquire the weight of block
-    GetWeight() uint
+	// Acquire the weight of block
+	GetWeight() uint
 
 	// Acquire the height of block in main chain
 	GetHeight() uint
@@ -79,10 +79,10 @@ type IBlock interface {
 
 // It is the element of a DAG. It is the most basic data unit.
 type Block struct {
-	id         uint
-	hash       hash.Hash
-	parents    *HashSet
-	children   *HashSet
+	id       uint
+	hash     hash.Hash
+	parents  *HashSet
+	children *HashSet
 
 	mainParent *hash.Hash
 	weight     uint
@@ -124,14 +124,14 @@ func (b *Block) HasParents() bool {
 
 // Parent with order in front.
 func (b *Block) GetForwardParent() *Block {
-	if b.parents==nil || b.parents.IsEmpty() {
+	if b.parents == nil || b.parents.IsEmpty() {
 		return nil
 	}
-	var result *Block=nil
-	for _,v:=range b.parents.GetMap(){
-		parent:=v.(*Block)
-		if result==nil || parent.GetOrder()<result.GetOrder(){
-			result=parent
+	var result *Block = nil
+	for _, v := range b.parents.GetMap() {
+		parent := v.(*Block)
+		if result == nil || parent.GetOrder() < result.GetOrder() {
+			result = parent
 		}
 	}
 	return result
@@ -139,14 +139,14 @@ func (b *Block) GetForwardParent() *Block {
 
 // Parent with order in back.
 func (b *Block) GetBackParent() *Block {
-	if b==nil || b.parents==nil || b.parents.IsEmpty() {
+	if b == nil || b.parents == nil || b.parents.IsEmpty() {
 		return nil
 	}
-	var result *Block=nil
-	for _,v:=range b.parents.GetMap(){
-		parent:=v.(*Block)
-		if result==nil || parent.GetOrder()>result.GetOrder(){
-			result=parent
+	var result *Block = nil
+	for _, v := range b.parents.GetMap() {
+		parent := v.(*Block)
+		if result == nil || parent.GetOrder() > result.GetOrder() {
+			result = parent
 		}
 	}
 	return result
@@ -157,7 +157,7 @@ func (b *Block) AddChild(child *Block) {
 	if b.children == nil {
 		b.children = NewHashSet()
 	}
-	b.children.AddPair(child.GetHash(),child)
+	b.children.AddPair(child.GetHash(), child)
 }
 
 // Get all the children of block
@@ -188,7 +188,7 @@ func (b *Block) GetWeight() uint {
 
 // Setting the layer of block
 func (b *Block) SetLayer(layer uint) {
-	b.layer=layer
+	b.layer = layer
 }
 
 // Acquire the layer of block
@@ -198,7 +198,7 @@ func (b *Block) GetLayer() uint {
 
 // Setting the order of block
 func (b *Block) SetOrder(o uint) {
-	b.order=o
+	b.order = o
 }
 
 // Acquire the order of block
@@ -208,12 +208,12 @@ func (b *Block) GetOrder() uint {
 
 // IsOrdered
 func (b *Block) IsOrdered() bool {
-	return b.GetOrder()!=MaxBlockOrder
+	return b.GetOrder() != MaxBlockOrder
 }
 
 // Setting the height of block in main chain
 func (b *Block) SetHeight(h uint) {
-	b.height=h
+	b.height = h
 }
 
 // Acquire the height of block in main chain
@@ -223,26 +223,26 @@ func (b *Block) GetHeight() uint {
 
 // encode
 func (b *Block) Encode(w io.Writer) error {
-	err:=s.WriteElements(w,uint32(b.id))
+	err := s.WriteElements(w, uint32(b.id))
 	if err != nil {
 		return err
 	}
-	err=s.WriteElements(w,&b.hash)
+	err = s.WriteElements(w, &b.hash)
 	if err != nil {
 		return err
 	}
 	// parents
-	parents:=[]*hash.Hash{}
+	parents := []*hash.Hash{}
 	if b.HasParents() {
-		parents=b.parents.List()
+		parents = b.parents.List()
 	}
-	parentsSize:=len(parents)
-	err=s.WriteElements(w,uint32(parentsSize))
+	parentsSize := len(parents)
+	err = s.WriteElements(w, uint32(parentsSize))
 	if err != nil {
 		return err
 	}
-	for i:=0;i<parentsSize ;i++  {
-		err=s.WriteElements(w,parents[i])
+	for i := 0; i < parentsSize; i++ {
+		err = s.WriteElements(w, parents[i])
 		if err != nil {
 			return err
 		}
@@ -264,58 +264,58 @@ func (b *Block) Encode(w io.Writer) error {
 		}
 	}*/
 	// mainParent
-	mainParent:=&hash.ZeroHash
-	if b.mainParent!=nil {
-		mainParent=b.mainParent
+	mainParent := &hash.ZeroHash
+	if b.mainParent != nil {
+		mainParent = b.mainParent
 	}
-	err=s.WriteElements(w,mainParent)
+	err = s.WriteElements(w, mainParent)
 	if err != nil {
 		return err
 	}
 
-	err=s.WriteElements(w,uint32(b.weight))
+	err = s.WriteElements(w, uint32(b.weight))
 	if err != nil {
 		return err
 	}
-	err=s.WriteElements(w,uint32(b.order))
+	err = s.WriteElements(w, uint32(b.order))
 	if err != nil {
 		return err
 	}
-	err=s.WriteElements(w,uint32(b.layer))
+	err = s.WriteElements(w, uint32(b.layer))
 	if err != nil {
 		return err
 	}
-	err=s.WriteElements(w,uint32(b.height))
+	err = s.WriteElements(w, uint32(b.height))
 	if err != nil {
 		return err
 	}
-	return s.WriteElements(w,byte(b.status))
+	return s.WriteElements(w, byte(b.status))
 }
 
 // decode
 func (b *Block) Decode(r io.Reader) error {
 	var id uint32
-	err:=s.ReadElements(r,&id)
+	err := s.ReadElements(r, &id)
 	if err != nil {
 		return err
 	}
-	b.id=uint(id)
+	b.id = uint(id)
 
-	err=s.ReadElements(r,&b.hash)
+	err = s.ReadElements(r, &b.hash)
 	if err != nil {
 		return err
 	}
 	// parents
 	var parentsSize uint32
-	err=s.ReadElements(r,&parentsSize)
+	err = s.ReadElements(r, &parentsSize)
 	if err != nil {
 		return err
 	}
-	if parentsSize>0 {
+	if parentsSize > 0 {
 		b.parents = NewHashSet()
-		for i:=uint32(0);i<parentsSize ;i++  {
+		for i := uint32(0); i < parentsSize; i++ {
 			var parent hash.Hash
-			err:=s.ReadElements(r,&parent)
+			err := s.ReadElements(r, &parent)
 			if err != nil {
 				return err
 			}
@@ -341,56 +341,56 @@ func (b *Block) Decode(r io.Reader) error {
 	}*/
 	// mainParent
 	var mainParent hash.Hash
-	err=s.ReadElements(r,&mainParent)
+	err = s.ReadElements(r, &mainParent)
 	if err != nil {
 		return err
 	}
 	if mainParent.IsEqual(&hash.ZeroHash) {
-		b.mainParent=nil
-	}else{
-		b.mainParent=&mainParent
+		b.mainParent = nil
+	} else {
+		b.mainParent = &mainParent
 	}
 
 	var weight uint32
-	err=s.ReadElements(r,&weight)
+	err = s.ReadElements(r, &weight)
 	if err != nil {
 		return err
 	}
-	b.weight=uint(weight)
+	b.weight = uint(weight)
 
 	var order uint32
-	err=s.ReadElements(r,&order)
+	err = s.ReadElements(r, &order)
 	if err != nil {
 		return err
 	}
-	b.order=uint(order)
+	b.order = uint(order)
 
 	var layer uint32
-	err=s.ReadElements(r,&layer)
+	err = s.ReadElements(r, &layer)
 	if err != nil {
 		return err
 	}
-	b.layer=uint(layer)
+	b.layer = uint(layer)
 
 	var height uint32
-	err=s.ReadElements(r,&height)
+	err = s.ReadElements(r, &height)
 	if err != nil {
 		return err
 	}
-	b.height=uint(height)
+	b.height = uint(height)
 
 	var status byte
-	err=s.ReadElements(r,&status)
+	err = s.ReadElements(r, &status)
 	if err != nil {
 		return err
 	}
-	b.status=BlockStatus(status)
+	b.status = BlockStatus(status)
 	return nil
 }
 
 // SetStatus
 func (b *Block) SetStatus(status BlockStatus) {
-	b.status=status
+	b.status = status
 }
 
 func (b *Block) GetStatus() BlockStatus {

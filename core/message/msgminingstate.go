@@ -7,10 +7,9 @@ package message
 
 import (
 	"fmt"
-	"io"
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
 	s "github.com/Qitmeer/qitmeer/core/serialization"
-
+	"io"
 )
 
 // MaxMSBlocksAtHeadPerMsg is the maximum number of block hashes allowed

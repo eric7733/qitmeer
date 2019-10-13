@@ -4,8 +4,8 @@ package blockchain
 import (
 	"bytes"
 	"fmt"
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"github.com/Qitmeer/qitmeer/core/blockdag"
 	"github.com/Qitmeer/qitmeer/core/dbnamespace"
 	"github.com/Qitmeer/qitmeer/database"
@@ -89,11 +89,11 @@ type databaseInfo struct {
 // bestChainState represents the data to be stored the database for the current
 // best chain state.
 type bestChainState struct {
-	hash         hash.Hash
-	total        uint64
-	totalTxns    uint64
-	subsidy      int64
-	workSum      *big.Int
+	hash      hash.Hash
+	total     uint64
+	totalTxns uint64
+	subsidy   int64
+	workSum   *big.Int
 }
 
 // DBFetchBlockByOrder is the exported version of dbFetchBlockByOrder.
@@ -247,7 +247,7 @@ func (b *BlockChain) createChainState() error {
 	// genesis block, use its timestamp for the median time.
 	numTxns := uint64(len(genesisBlock.Block().Transactions))
 	blockSize := uint64(genesisBlock.Block().SerializeSize())
-	b.stateSnapshot = newBestState(node.GetHash(), node.bits,blockSize, numTxns,
+	b.stateSnapshot = newBestState(node.GetHash(), node.bits, blockSize, numTxns,
 		time.Unix(node.timestamp, 0), numTxns, b.params.BaseSubsidy, b.bd.GetGraphState())
 
 	// Create the initial the database chain state including creating the
@@ -308,9 +308,9 @@ func (b *BlockChain) createChainState() error {
 		}
 
 		// Add the genesis block to the block index.
-		ib:=b.bd.GetBlock(&node.hash)
+		ib := b.bd.GetBlock(&node.hash)
 		ib.SetStatus(blockdag.BlockStatus(node.status))
-		err=blockdag.DBPutDAGBlock(dbTx,ib)
+		err = blockdag.DBPutDAGBlock(dbTx, ib)
 		if err != nil {
 			return err
 		}
@@ -328,12 +328,12 @@ func (b *BlockChain) createChainState() error {
 			return err
 		}
 
-		blockdag.DBPutDAGInfo(dbTx,b.bd)
+		blockdag.DBPutDAGInfo(dbTx, b.bd)
 
 		// Add genesis utxo
 		view := NewUtxoViewpoint()
 		view.SetBestHash(genesisBlock.Hash())
-		for _,tx:=range genesisBlock.Transactions() {
+		for _, tx := range genesisBlock.Transactions() {
 			view.AddTxOuts(tx, genesisBlock.Hash())
 		}
 		err = dbPutUtxoView(dbTx, view)

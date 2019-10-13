@@ -2,11 +2,11 @@
 package serialization
 
 import (
-	"io"
-	"github.com/Qitmeer/qitmeer/core/protocol"
 	"encoding/binary"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
+	"io"
 	"time"
-	"github.com/Qitmeer/qitmeer/common/hash"
 )
 
 // ReadElements reads multiple items from r.  It is equivalent to multiple
@@ -250,4 +250,3 @@ func writeElement(w io.Writer, element interface{}) error {
 	// above.
 	return binary.Write(w, littleEndian, element)
 }
-

@@ -7,11 +7,11 @@
 package params
 
 import (
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/core/protocol"
-	"github.com/Qitmeer/qitmeer/core/types"
-	"time"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"github.com/Qitmeer/qitmeer/ledger"
+	"time"
 )
 
 // MainNet ------------------------------------------------------------------------
@@ -19,29 +19,30 @@ import (
 // genesisCoinbaseTx is the coinbase transaction for the genesis blocks for
 // the main network.
 func buildGenesisCoinbaseTx(net protocol.Network) types.Transaction {
-	tx:=types.Transaction{
+	tx := types.Transaction{
 		Version: 1,
 		TxIn: []*types.TxInput{
 			{
 				// Fully null.
 				PreviousOut: types.TxOutPoint{
-					Hash:  hash.Hash{},
+					Hash:     hash.Hash{},
 					OutIndex: 0xffffffff,
 				},
 				SignScript: []byte{
 					0x00, 0x00,
 				},
-				Sequence:    0xffffffff,
+				Sequence: 0xffffffff,
 			},
 		},
 		LockTime: 0,
 		Expire:   0,
 	}
-	ledger.Ledger(&tx,net)
+	ledger.Ledger(&tx, net)
 	return tx
 }
 
 var genesisCoinbaseTx = buildGenesisCoinbaseTx(protocol.MainNet)
+
 // mainnetgenesisMerkleRoot is the hash of the first transaction in the genesis block
 // for the main network.
 var genesisMerkleRoot = genesisCoinbaseTx.TxHash()
@@ -62,14 +63,14 @@ var genesisMerkleRoot = genesisCoinbaseTx.TxHash()
 // it are validated for correctness.
 var genesisBlock = types.Block{
 	Header: types.BlockHeader{
-		ParentRoot:    hash.Hash{},
-		TxRoot:   genesisMerkleRoot,
+		ParentRoot: hash.Hash{},
+		TxRoot:     genesisMerkleRoot,
 		//UtxoCommitment: types.Hash{},
 		//CompactFilter: types.Hash{},
-		StateRoot:	 hash.Hash{},
-		Timestamp:    time.Unix(1561939200, 0), // 2019-07-01 00:00:00 GMT
-		Difficulty:         0x1b01ffff,               // Difficulty 32767
-		Nonce:        0x00000000,
+		StateRoot:  hash.Hash{},
+		Timestamp:  time.Unix(1561939200, 0), // 2019-07-01 00:00:00 GMT
+		Difficulty: 0x1b01ffff,               // Difficulty 32767
+		Nonce:      0x00000000,
 	},
 	Transactions: []*types.Transaction{&genesisCoinbaseTx},
 }
@@ -77,7 +78,6 @@ var genesisBlock = types.Block{
 // genesisHash is the hash of the first block in the block chain for the main
 // network (genesis block).
 var genesisHash = genesisBlock.BlockHash()
-
 
 // TestNet ------------------------------------------------------------------------
 
@@ -92,12 +92,12 @@ var testNetGenesisMerkleRoot = testNetGenesisCoinbaseTx.TxHash()
 // serves as the public transaction ledger for the test network (version 3).
 var testNetGenesisBlock = types.Block{
 	Header: types.BlockHeader{
-		Version:      2,
-		ParentRoot:   hash.Hash{},
-		TxRoot:       testNetGenesisMerkleRoot,
-		Timestamp:    time.Unix(1547735581, 0), // 2019-01-17 14:33:12 GMT
-		Difficulty:   0x1e00ffff,
-		Nonce:        0x00000000,
+		Version:    2,
+		ParentRoot: hash.Hash{},
+		TxRoot:     testNetGenesisMerkleRoot,
+		Timestamp:  time.Unix(1547735581, 0), // 2019-01-17 14:33:12 GMT
+		Difficulty: 0x1e00ffff,
+		Nonce:      0x00000000,
 	},
 	Transactions: []*types.Transaction{&testNetGenesisCoinbaseTx},
 }
@@ -113,7 +113,7 @@ var privNetGenesisCoinbaseTx = types.Transaction{
 	TxIn: []*types.TxInput{
 		{
 			PreviousOut: types.TxOutPoint{
-				Hash:  hash.Hash{},
+				Hash:     hash.Hash{},
 				OutIndex: 0xffffffff,
 			},
 			Sequence: 0xffffffff,
@@ -156,28 +156,27 @@ var privNetGenesisCoinbaseTx = types.Transaction{
 // the main network.
 var privNetGenesisMerkleRoot = privNetGenesisCoinbaseTx.TxHash()
 
-var zeroHash =  hash.ZeroHash
+var zeroHash = hash.ZeroHash
 
 // privNetGenesisBlock defines the genesis block of the block chain which serves
 // as the public transaction ledger for the simulation test network.
 var privNetGenesisBlock = types.Block{
 	Header: types.BlockHeader{
 		ParentRoot: zeroHash,
-		TxRoot: privNetGenesisMerkleRoot,
+		TxRoot:     privNetGenesisMerkleRoot,
 		StateRoot: hash.Hash([32]byte{ // Make go vet happy.
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		}),
-		Timestamp:    time.Unix(1530833717, 0), // 2018-07-05 23:35:17 GMT
-		Difficulty:   0x207fffff, // 545259519
-		Nonce:        0,
+		Timestamp:  time.Unix(1530833717, 0), // 2018-07-05 23:35:17 GMT
+		Difficulty: 0x207fffff,               // 545259519
+		Nonce:      0,
 	},
-	Transactions:  []*types.Transaction{&privNetGenesisCoinbaseTx},
+	Transactions: []*types.Transaction{&privNetGenesisCoinbaseTx},
 }
 
 // privNetGenesisHash is the hash of the first block in the block chain for the
 // private test network.
 var privNetGenesisHash = privNetGenesisBlock.BlockHash()
-

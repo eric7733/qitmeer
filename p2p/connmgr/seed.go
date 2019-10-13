@@ -7,15 +7,14 @@ package connmgr
 
 import (
 	"fmt"
-	"github.com/Qitmeer/qitmeer/core/protocol"
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"github.com/Qitmeer/qitmeer/log"
 	"github.com/Qitmeer/qitmeer/params"
 	mrand "math/rand"
 	"net"
 	"strconv"
 	"time"
-
 )
 
 const (
@@ -36,7 +35,7 @@ type LookupFunc func(string) ([]net.IP, error)
 func SeedFromDNS(chainParams *params.Params, reqServices protocol.ServiceFlag, lookupFn LookupFunc, seedFn OnSeed) {
 	for _, dnsseed := range chainParams.DNSSeeds {
 		var host string
-		if !dnsseed.HasFiltering || reqServices == protocol.Full{
+		if !dnsseed.HasFiltering || reqServices == protocol.Full {
 			host = dnsseed.Host
 		} else {
 			host = fmt.Sprintf("x%x.%s", uint64(reqServices), dnsseed.Host)
@@ -47,7 +46,7 @@ func SeedFromDNS(chainParams *params.Params, reqServices protocol.ServiceFlag, l
 
 			seedpeers, err := lookupFn(host)
 			if err != nil {
-				log.Warn("DNS discovery failed", "seed",host, "error",err)
+				log.Warn("DNS discovery failed", "seed", host, "error", err)
 				return
 			}
 			numPeers := len(seedpeers)

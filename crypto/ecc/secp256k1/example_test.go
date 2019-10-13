@@ -9,8 +9,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	chainhash "github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/crypto/ecc/secp256k1"
+	chainhash "github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/crypto/ecc/secp256k1"
 )
 
 // This example demonstrates signing a message with a secp256k1 private key that
@@ -66,7 +66,7 @@ func Example_verifySignature() {
 	}
 
 	// Decode hex-encoded serialized signature.
-	sigBytes, err := hex.DecodeString( "3044022065e32e6741a0d14ce677ce4fc" +
+	sigBytes, err := hex.DecodeString("3044022065e32e6741a0d14ce677ce4fc" +
 		"63aa14239e5495527931faf74a608986a15acde0220212388535bf58d151c7839590" +
 		"0ccb88c2da63a408a61af62b62a32fdb0eda5ce")
 

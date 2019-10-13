@@ -7,15 +7,15 @@
 package params
 
 import (
-	"time"
-	"math/big"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
 	"github.com/Qitmeer/qitmeer/common"
-	"github.com/Qitmeer/qitmeer/core/protocol"
+	"math/big"
+	"time"
 )
 
 // mainPowLimit is the highest proof of work value a block can
 // have for the main network. It is the value 2^224 - 1.
-var mainPowLimit    = new(big.Int).Sub(new(big.Int).Lsh(common.Big1, 224), common.Big1)
+var mainPowLimit = new(big.Int).Sub(new(big.Int).Lsh(common.Big1, 224), common.Big1)
 
 // MainNetParams defines the network parameters for the main network.
 var MainNetParams = Params{
@@ -45,7 +45,6 @@ var MainNetParams = Params{
 	TargetTimespan:           time.Minute * 5 * 144, // TimePerBlock * WindowSize
 	RetargetAdjustmentFactor: 4,
 
-
 	// Subsidy parameters.
 	BaseSubsidy:              3119582664, // 21m
 	MulSubsidy:               100,
@@ -56,11 +55,9 @@ var MainNetParams = Params{
 	BlockTaxProportion:       1,
 
 	// Checkpoints ordered from oldest to newest.
-	Checkpoints: []Checkpoint{
-	},
+	Checkpoints: []Checkpoint{},
 
-	Deployments: map[uint32][]ConsensusDeployment{
-	},
+	Deployments: map[uint32][]ConsensusDeployment{},
 
 	// Address encoding magics
 	NetworkAddressPrefix: "N",
@@ -81,7 +78,7 @@ var MainNetParams = Params{
 	// https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 	HDCoinType: 223,
 
-	CoinbaseMaturity:        256,
+	CoinbaseMaturity: 256,
 
-	OrganizationPkScript:  hexMustDecode("76a914c0f0b73c320e1fe38eb1166a57b953e509c8f93e88ac"),
+	OrganizationPkScript: hexMustDecode("76a914c0f0b73c320e1fe38eb1166a57b953e509c8f93e88ac"),
 }

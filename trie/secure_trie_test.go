@@ -19,7 +19,7 @@ package trie
 
 import (
 	"bytes"
-	"github.com/Qitmeer/qitmeer/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
 	"github.com/Qitmeer/qitmeer/common/util"
 	"github.com/Qitmeer/qitmeer/database/statedb"
 	"runtime"
@@ -96,7 +96,7 @@ func TestSecureGetKey(t *testing.T) {
 
 	key := []byte("foo")
 	value := []byte("bar")
-	seckey := hash.CalcHash(key,hash.GetHasher(hash.Keccak_256))
+	seckey := hash.CalcHash(key, hash.GetHasher(hash.Keccak_256))
 
 	if !bytes.Equal(trie.Get(key), value) {
 		t.Errorf("Get did not return bar")

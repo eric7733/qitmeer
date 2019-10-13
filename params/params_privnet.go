@@ -7,16 +7,15 @@
 package params
 
 import (
-	"math/big"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
 	"github.com/Qitmeer/qitmeer/common"
-	"github.com/Qitmeer/qitmeer/core/protocol"
+	"math/big"
 	"time"
 )
 
-
 // privNetPowLimit is the highest proof of work value a block can
 // have for the private test network. It is the value 2^255 - 1.
-var	privNetPowLimit = new(big.Int).Sub(new(big.Int).Lsh(common.Big1, 255), common.Big1)
+var privNetPowLimit = new(big.Int).Sub(new(big.Int).Lsh(common.Big1, 255), common.Big1)
 
 // PirvNetParams defines the network parameters for the private test network.
 // This network is similar to the normal test network except it is
@@ -61,8 +60,7 @@ var PrivNetParams = Params{
 	Checkpoints: nil,
 
 	// Consensus rule change deployments.
-	Deployments: map[uint32][]ConsensusDeployment{
-	},
+	Deployments: map[uint32][]ConsensusDeployment{},
 
 	// Address encoding magics
 	NetworkAddressPrefix: "R",
@@ -72,7 +70,6 @@ var PrivNetParams = Params{
 	PKHSchnorrAddrID:     [2]byte{0x0d, 0xfd}, // starts with Rr
 	ScriptHashAddrID:     [2]byte{0x0d, 0xc2}, // starts with RS
 	PrivateKeyID:         [2]byte{0x0c, 0xdd}, // starts with Pr
-
 
 	// BIP32 hierarchical deterministic extended key magics
 	HDPrivateKeyID: [4]byte{0x04, 0x0b, 0xee, 0x6e}, // starts with rprv
@@ -84,7 +81,7 @@ var PrivNetParams = Params{
 	HDCoinType: 223, // ASCII for s
 
 	// TODO replace the test pkh
-	OrganizationPkScript:  hexMustDecode("76a91408ff3106060bf8d7d61a25d8108ec977698729f788ac"),
+	OrganizationPkScript: hexMustDecode("76a91408ff3106060bf8d7d61a25d8108ec977698729f788ac"),
 
 	CoinbaseMaturity: 16,
 }

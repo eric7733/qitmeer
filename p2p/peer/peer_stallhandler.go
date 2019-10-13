@@ -7,9 +7,9 @@ package peer
 
 import (
 	"fmt"
+	"github.com/Qitmeer/qitmeer-lib/params/dcr/types"
 	"github.com/Qitmeer/qitmeer/core/message"
 	"github.com/Qitmeer/qitmeer/log"
-	"github.com/Qitmeer/qitmeer/params/dcr/types"
 	"time"
 )
 
@@ -186,7 +186,7 @@ cleanup:
 			break cleanup
 		}
 	}
-	log.Trace("Peer stall handler done", "peer",p.addr)
+	log.Trace("Peer stall handler done", "peer", p.addr)
 }
 
 // maybeAddDeadline potentially adds a deadline for the appropriate expected

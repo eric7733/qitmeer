@@ -8,9 +8,9 @@ package message
 
 import (
 	"fmt"
-	"io"
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	s "github.com/Qitmeer/qitmeer/core/serialization"
+	"io"
 )
 
 // MaxAddrPerMsg is the maximum number of addresses that can be in a single

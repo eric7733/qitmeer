@@ -1,7 +1,7 @@
 package blkmgr
 
 import (
-	"github.com/Qitmeer/qitmeer/core/types"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 )
 
 // getCurrentTemplateMsg handles a request for the current mining block template.
@@ -81,7 +81,6 @@ func (b *BlockManager) SetParentTemplate(bt *types.BlockTemplate) {
 	<-reply
 }
 
-
 // deepCopyBlockTemplate returns a deeply copied block template that copies all
 // data except a block's references to transactions, which are kept as pointers
 // in the block. This is considered safe because transaction data is generally
@@ -110,8 +109,8 @@ func deepCopyBlockTemplate(blockTemplate *types.BlockTemplate) *types.BlockTempl
 	}
 
 	msgBlockCopy := &types.Block{
-		Header:        headerCopy,
-		Transactions:  transactionsCopy,
+		Header:       headerCopy,
+		Transactions: transactionsCopy,
 	}
 
 	fees := make([]int64, len(blockTemplate.Fees))
@@ -128,5 +127,3 @@ func deepCopyBlockTemplate(blockTemplate *types.BlockTemplate) *types.BlockTempl
 		ValidPayAddress: blockTemplate.ValidPayAddress,
 	}
 }
-
-

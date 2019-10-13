@@ -9,12 +9,14 @@ package txscript
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/Qitmeer/qitmeer/common/hash"
-	"github.com/Qitmeer/qitmeer/params"
+	"github.com/Qitmeer/qitmeer-lib/common/hash"
+	"github.com/Qitmeer/qitmeer-lib/core/types"
 	"github.com/Qitmeer/qitmeer/core/address"
-	"github.com/Qitmeer/qitmeer/core/types"
-	"github.com/Qitmeer/qitmeer/crypto/ecc"
-	"github.com/Qitmeer/qitmeer/params/btc/addr"
+	"github.com/Qitmeer/qitmeer/params"
+	//"github.com/Qitmeer/qitmeer-lib/crypto/ecc"
+	"github.com/Qitmeer/qitmeer-lib/crypto/ecc"
+	//"github.com/Qitmeer/qitmeer-lib/params/btc/addr"
+	"github.com/Qitmeer/qitmeer-lib/params/btc/addr"
 )
 
 const (
@@ -57,7 +59,7 @@ var scriptRegistry = []Script{
 }
 
 func fromRegisteredScript(pops []ParsedOpcode) Script {
-	for _, s := range scriptRegistry{
+	for _, s := range scriptRegistry {
 		if s.Match(pops) {
 			s.SetOpcode(pops)
 			return s
@@ -70,7 +72,7 @@ func fromRegisteredScript(pops []ParsedOpcode) Script {
 func RegisterScript(sin Script) error {
 	for _, s := range scriptRegistry {
 		if s.GetClass() == sin.GetClass() {
-			return fmt.Errorf("%v has been registred as script %v ",sin, s)
+			return fmt.Errorf("%v has been registred as script %v ", sin, s)
 		}
 	}
 	scriptRegistry = append(scriptRegistry, sin)
@@ -80,23 +82,23 @@ func RegisterScript(sin Script) error {
 // ParsePkScript returns a parsed Script from the Script registry, which's addresses and
 // required signatures are associated with. Note: It's methold only works for the
 // registered Script
-func ParsePkScript(pkScript []byte) (Script,error) {
+func ParsePkScript(pkScript []byte) (Script, error) {
 	pops, err := parseScript(pkScript)
 	if err != nil {
 		return nil, err
 	}
-	return fromRegisteredScript(pops),nil
+	return fromRegisteredScript(pops), nil
 }
 
-type NonStandardScript struct {}
+type NonStandardScript struct{}
 
 func (s *NonStandardScript) Name() string {
 	return scriptClassToName[NonStandardTy]
 }
-func (s *NonStandardScript) GetClass() ScriptClass{
+func (s *NonStandardScript) GetClass() ScriptClass {
 	return NonStandardTy
 }
-func (s *NonStandardScript) Match(pops []ParsedOpcode) bool{
+func (s *NonStandardScript) Match(pops []ParsedOpcode) bool {
 	return false
 }
 func (s *NonStandardScript) SetOpcode(pops []ParsedOpcode) error {
@@ -108,6 +110,7 @@ func (s *NonStandardScript) GetAddresses() []types.Address {
 func (s *NonStandardScript) RequiredSigs() bool {
 	return true
 }
+
 var _ Script = (*NonStandardScript)(nil)
 
 // scriptClassToName houses the human-readable strings which describe each
@@ -447,7 +450,7 @@ func GetScriptClass(version uint16, script []byte) ScriptClass {
 
 	pops, err := parseScript(script)
 	if err != nil {
-		log.Error("parseScript error", "script",fmt.Sprintf("%x",script))
+		log.Error("parseScript error", "script", fmt.Sprintf("%x", script))
 		return NonStandardTy
 	}
 

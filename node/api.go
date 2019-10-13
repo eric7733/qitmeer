@@ -7,13 +7,13 @@ package node
 
 import (
 	"fmt"
+	"github.com/Qitmeer/qitmeer-lib/core/protocol"
+	"github.com/Qitmeer/qitmeer/core/blockchain"
 	"github.com/Qitmeer/qitmeer/core/blockdag"
 	"github.com/Qitmeer/qitmeer/core/json"
 	"github.com/Qitmeer/qitmeer/core/message"
-	"github.com/Qitmeer/qitmeer/core/protocol"
 	"github.com/Qitmeer/qitmeer/params"
 	"github.com/Qitmeer/qitmeer/rpc"
-	"github.com/Qitmeer/qitmeer/core/blockchain"
 	"github.com/Qitmeer/qitmeer/version"
 	"math/big"
 	"strconv"
@@ -40,18 +40,18 @@ func NewPublicBlockChainAPI(node *QitmeerFull) *PublicBlockChainAPI {
 func (api *PublicBlockChainAPI) GetNodeInfo() (interface{}, error) {
 	best := api.node.blockManager.GetChain().BestSnapshot()
 	ret := &json.InfoNodeResult{
-		UUID:            message.UUID.String(),
-		Version:         int32(1000000*version.Major + 10000*version.Minor + 100*version.Patch),
-		ProtocolVersion: int32(protocol.ProtocolVersion),
-		TimeOffset:      int64(api.node.blockManager.GetChain().TimeSource().Offset().Seconds()),
-		Connections:     api.node.node.peerServer.ConnectedCount(),
-		Difficulty:      getDifficultyRatio(best.Bits,api.node.node.Params),
-		TestNet:         api.node.node.Config.TestNet,
-		Confirmations:   blockdag.StableConfirmations,
+		UUID:             message.UUID.String(),
+		Version:          int32(1000000*version.Major + 10000*version.Minor + 100*version.Patch),
+		ProtocolVersion:  int32(protocol.ProtocolVersion),
+		TimeOffset:       int64(api.node.blockManager.GetChain().TimeSource().Offset().Seconds()),
+		Connections:      api.node.node.peerServer.ConnectedCount(),
+		Difficulty:       getDifficultyRatio(best.Bits, api.node.node.Params),
+		TestNet:          api.node.node.Config.TestNet,
+		Confirmations:    blockdag.StableConfirmations,
 		CoinbaseMaturity: int32(api.node.node.Params.CoinbaseMaturity),
-		Modules:         []string{rpc.DefaultServiceNameSpace,rpc.MinerNameSpace},
+		Modules:          []string{rpc.DefaultServiceNameSpace, rpc.MinerNameSpace},
 	}
-	ret.GraphState=*getGraphStateResult(best.GraphState)
+	ret.GraphState = *getGraphStateResult(best.GraphState)
 	return ret, nil
 }
 
@@ -83,27 +83,27 @@ func (api *PublicBlockChainAPI) GetPeerInfo() (interface{}, error) {
 	for _, p := range peers {
 		statsSnap := p.StatsSnapshot()
 		info := &json.GetPeerInfoResult{
-			UUID:           statsSnap.UUID.String(),
-			ID:             statsSnap.ID,
-			Addr:           statsSnap.Addr,
-			AddrLocal:      p.LocalAddr().String(),
-			Services:       fmt.Sprintf("%08d", uint64(statsSnap.Services)),
-			RelayTxes:      !p.IsTxRelayDisabled(),
-			LastSend:       statsSnap.LastSend.Unix(),
-			LastRecv:       statsSnap.LastRecv.Unix(),
-			BytesSent:      statsSnap.BytesSent,
-			BytesRecv:      statsSnap.BytesRecv,
-			ConnTime:       statsSnap.ConnTime.Unix(),
-			PingTime:       float64(statsSnap.LastPingMicros),
-			TimeOffset:     statsSnap.TimeOffset,
-			Version:        statsSnap.Version,
-			SubVer:         statsSnap.UserAgent,
-			Inbound:        statsSnap.Inbound,
-			BanScore:       int32(p.BanScore()),
-			SyncNode:       statsSnap.ID == syncPeerID,
+			UUID:       statsSnap.UUID.String(),
+			ID:         statsSnap.ID,
+			Addr:       statsSnap.Addr,
+			AddrLocal:  p.LocalAddr().String(),
+			Services:   fmt.Sprintf("%08d", uint64(statsSnap.Services)),
+			RelayTxes:  !p.IsTxRelayDisabled(),
+			LastSend:   statsSnap.LastSend.Unix(),
+			LastRecv:   statsSnap.LastRecv.Unix(),
+			BytesSent:  statsSnap.BytesSent,
+			BytesRecv:  statsSnap.BytesRecv,
+			ConnTime:   statsSnap.ConnTime.Unix(),
+			PingTime:   float64(statsSnap.LastPingMicros),
+			TimeOffset: statsSnap.TimeOffset,
+			Version:    statsSnap.Version,
+			SubVer:     statsSnap.UserAgent,
+			Inbound:    statsSnap.Inbound,
+			BanScore:   int32(p.BanScore()),
+			SyncNode:   statsSnap.ID == syncPeerID,
 		}
-		if statsSnap.GraphState!=nil {
-			info.GraphState=*getGraphStateResult(statsSnap.GraphState)
+		if statsSnap.GraphState != nil {
+			info.GraphState = *getGraphStateResult(statsSnap.GraphState)
 		}
 		if p.LastPingNonce() != 0 {
 			wait := float64(time.Since(statsSnap.LastPingTime).Nanoseconds())
@@ -115,17 +115,17 @@ func (api *PublicBlockChainAPI) GetPeerInfo() (interface{}, error) {
 	return infos, nil
 }
 
-func getGraphStateResult(gs *blockdag.GraphState) *json.GetGraphStateResult{
-	if gs!=nil {
-		tips:=[]string{}
-		for k:=range gs.GetTips().GetMap(){
-			tips=append(tips,k.String())
+func getGraphStateResult(gs *blockdag.GraphState) *json.GetGraphStateResult {
+	if gs != nil {
+		tips := []string{}
+		for k := range gs.GetTips().GetMap() {
+			tips = append(tips, k.String())
 		}
 		return &json.GetGraphStateResult{
-			Tips:tips,
-			MainOrder:uint32(gs.GetMainOrder()),
-			Layer:uint32(gs.GetLayer()),
-			MainHeight:uint32(gs.GetMainHeight()),
+			Tips:       tips,
+			MainOrder:  uint32(gs.GetMainOrder()),
+			Layer:      uint32(gs.GetLayer()),
+			MainHeight: uint32(gs.GetMainHeight()),
 		}
 	}
 	return nil
